@@ -1,0 +1,33 @@
+{
+  "app_name": "ক্লিনিক পার্টনার",
+  "choose_language": "আপনার ভাষা নির্বাচন করুন",
+  "select_language": "আপনার পছন্দের ভাষা নির্বাচন করুন",
+  "continue": "চালিয়ে যান",
+
+  "mobile_number": "মোবাইল নম্বর",
+  "enter_mobile": "মোবাইল নম্বর লিখুন",
+
+  "email": "ইমেইল",
+  "email_placeholder": "clinic@email.com",
+
+  "password": "পাসওয়ার্ড",
+  "enter_password": "পাসওয়ার্ড লিখুন",
+
+  "address": "ঠিকানা",
+  "address_placeholder": "ক্লিনিকের ঠিকানা",
+
+  "city": "শহর",
+  "city_placeholder": "কলকাতা",
+
+  "state": "রাজ্য",
+  "state_placeholder": "পশ্চিমবঙ্গ",
+
+  "pincode": "পিনকোড",
+  "pincode_placeholder": "৭০০০০১",
+
+  "create_account": "অ্যাকাউন্ট তৈরি করুন",
+  "login": "লগইন করুন",
+
+  "footer": "© ২০২৬ ক্লিনিক পার্টনার। সর্বস্বত্ব সংরক্ষিত।",
+  "please_wait": "অনুগ্রহ করে অপেক্ষা করুন..."
+}

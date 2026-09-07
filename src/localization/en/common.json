@@ -1,0 +1,33 @@
+{
+  "app_name": "Clinic Partner",
+  "choose_language": "Choose Your Language",
+  "select_language": "Select your preferred language",
+  "continue": "Continue",
+
+  "mobile_number": "Mobile Number",
+  "enter_mobile": "Enter Mobile Number",
+
+  "email": "Email",
+  "email_placeholder": "clinic@email.com",
+
+  "password": "Password",
+  "enter_password": "Enter Password",
+
+  "address": "Address",
+  "address_placeholder": "Clinic Address",
+
+  "city": "City",
+  "city_placeholder": "Kolkata",
+
+  "state": "State",
+  "state_placeholder": "West Bengal",
+
+  "pincode": "Pincode",
+  "pincode_placeholder": "700001",
+
+  "create_account": "Create Account",
+  "login": "Login",
+
+  "footer": "© 2026 Clinic Partner. All rights reserved.",
+  "please_wait": "Please wait..."
+}

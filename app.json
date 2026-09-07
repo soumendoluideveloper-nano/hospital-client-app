@@ -1,0 +1,62 @@
+{
+  "expo": {
+    "name": "CareSpot Clinic Partner",
+    "slug": "carespot-clinic-partner",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "newArchEnabled": true,
+    "splash": {
+      "image": "./assets/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.carespot.clinicpartner"
+    },
+    "android": {
+      "package": "com.carespot.clinicpartner",
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#ffffff"
+      },
+      "edgeToEdgeEnabled": true,
+      "predictiveBackGestureEnabled": false,
+      "permissions": [
+        "android.permission.RECORD_AUDIO",
+        "android.permission.ACCESS_COARSE_LOCATION",
+        "android.permission.ACCESS_FINE_LOCATION"
+      ]
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      "expo-secure-store",
+      "@react-native-community/datetimepicker",
+      "expo-localization",
+      "expo-font",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "The app accesses your photos to let you choose a clinic logo.",
+          "cameraPermission": "The app accesses your camera to let you take a clinic logo photo."
+        }
+      ],
+      [
+        "expo-location",
+        {
+          "locationAlwaysAndWhenInUsePermission": "Allow CareSpot to access your location."
+        }
+      ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "80183288-a149-40ab-9ad2-93309bf31ec0"
+      }
+    },
+    "owner": "soumendeveloper"
+  }
+}

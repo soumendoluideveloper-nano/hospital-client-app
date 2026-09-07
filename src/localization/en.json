@@ -1,0 +1,63 @@
+{
+  "app_name": "Clinic Partner",
+  "choose_language": "Choose Your Language",
+  "select_language": "Select your preferred language",
+  "continue": "Continue",
+
+  "login_title": "Clinic Partner",
+  "login_subtitle": "Sign in to manage your clinic appointments",
+
+  
+  "send_otp": "Send OTP",
+
+  "create_account": "Create Account",
+  "dont_have_account": "Don't have a clinic account?",
+  "footer": "© 2026 Clinic Partner. All rights reserved.",
+  "invalid_mobile": "Please enter a valid mobile number",
+  "signup_title": "Create Clinic Account",
+  "signup_subtitle": "Join Clinic Partner and manage your clinic efficiently.",
+
+  "clinic_name": "Clinic Name",
+  "clinic_name_placeholder": "ABC Clinic",
+
+  "owner_name": "Owner Name",
+  "owner_name_placeholder": "Dr. Rahul Sen",
+
+  "mobile_number": "Mobile Number",
+  "enter_mobile": "Enter Mobile Number",
+
+  "email": "Email Address",
+  "email_placeholder": "clinic@email.com",
+
+  "password": "Password",
+  "enter_password": "Enter Password",
+
+  "confirm_password": "Confirm Password",
+  "confirm_password_placeholder": "Confirm Password",
+
+  "address": "Address",
+  "address_placeholder": "Clinic Address",
+
+  "city": "City",
+  "city_placeholder": "Kolkata",
+
+  "state": "State",
+  "state_placeholder": "West Bengal",
+
+  "pincode": "Pincode",
+  "pincode_placeholder": "700001",
+
+  "referral_code": "Referral Code (Optional)",
+  "referral_code_placeholder": "Enter Referral Code",
+
+  "already_have_account": "Already have an account?",
+  "login": "Sign In",
+ 
+
+  "clinic_name_required": "Please enter clinic name.",
+  "owner_name_required": "Please enter owner name.",
+  "email_required": "Please enter email address.",
+  "password_required": "Please enter password.",
+  "password_not_match": "Passwords do not match.",
+  "account_created": "Account created successfully."
+}

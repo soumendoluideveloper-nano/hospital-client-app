@@ -1,0 +1,188 @@
+{
+  "add_doctor": "Add Doctor",
+  "add_doctor_subtitle": "Fill in the doctor's information",
+
+  "full_name": "Full Name",
+  "full_name_placeholder": "Dr. Amit Sen",
+
+  "mobile_number": "Mobile Number",
+  "mobile_number_placeholder": "9876543210",
+
+  "email": "Email",
+  "email_placeholder": "doctor@email.com",
+
+  "qualification": "Qualification",
+  "qualification_placeholder": "MBBS, MD",
+
+  "specialization": "Specialization",
+  "specialization_placeholder": "Cardiologist",
+
+  "experience": "Experience",
+  "experience_placeholder": "10",
+  "experience_years": "Experience (Years)",
+
+  "years": "Years",
+
+  "registration_no": "Registration No.",
+  "registration_no_placeholder": "WBMC123456",
+
+  "consultation_fee": "Consultation Fee",
+  "consultation_fee_placeholder": "500",
+
+  "about_doctor": "About Doctor",
+  "about_doctor_placeholder": "Write about the doctor...",
+
+  "save_doctor": "Save Doctor",
+
+  "full_name_required": "Doctor name is required.",
+  "mobile_required": "Mobile number is required.",
+  "invalid_mobile": "Mobile number must be 10 digits.",
+
+  "email_required": "Email is required.",
+  "invalid_email": "Please enter a valid email address.",
+
+  "qualification_required": "Qualification is required.",
+  "specialization_required": "Specialization is required.",
+
+  "experience_required": "Experience is required.",
+  "invalid_experience": "Please enter experience in years.",
+
+  "registration_no_required": "Registration number is required.",
+
+  "consultation_fee_required": "Consultation fee is required.",
+  "invalid_consultation_fee": "Please enter a valid consultation fee.",
+
+  "about_doctor_required": "About doctor is required.",
+
+  "ok": "OK",
+
+  "doctor_added": "Success",
+  "doctor_added_successfully": "Doctor added successfully.",
+
+  "error": "Error",
+  "something_went_wrong": "Something went wrong.",
+
+  "search_doctor": "Search doctor...",
+  "loading_doctors": "Loading doctors...",
+  "load_doctors_failed": "Failed to load doctors.",
+  "loading_more": "Loading more...",
+  "retry": "Retry",
+
+  "no_doctor_found": "No Doctor Found",
+  "no_doctors": "No Doctors Added",
+  "try_another_keyword": "Try another keyword",
+  "add_first_doctor": "Add your first doctor to get started.",
+
+  "doctor_information": "Doctor Information",
+  "mobile": "Mobile",
+  "not_available": "Not Available",
+
+  "about": "About",
+
+  "schedule": "Schedule",
+  "manage_schedule": "Manage Schedule",
+  "manage_doctor_schedule": "Manage doctor's schedule",
+
+  "quick_actions": "Quick Actions",
+  "edit_doctor": "Edit Doctor",
+  "appointments": "Appointments",
+  "delete_doctor": "Delete Doctor",
+
+  "loading_doctor": "Loading doctor...",
+  "load_doctor_failed": "Failed to load doctor details.",
+  "doctor_not_found": "Doctor Not Found",
+  "doctor_id_missing": "Doctor ID is missing.",
+
+  "delete": "Delete",
+  "cancel": "Cancel",
+  "delete_doctor_confirmation": "Are you sure you want to delete this doctor?",
+
+  "update_doctor_information": "Update doctor's information",
+
+
+  "enter_doctor_name": "Enter doctor name",
+
+  "enter_mobile": "Enter mobile number",
+
+  "enter_email": "Enter email address",
+
+  "enter_qualification": "Enter qualification",
+
+  "enter_specialization": "Enter specialization",
+
+  "enter_experience": "Enter experience",
+
+  "enter_registration": "Enter registration number",
+
+  "enter_consultation_fee": "Enter consultation fee",
+
+  "write_about_doctor": "Write about the doctor...",
+
+  "update_doctor": "Update Doctor",
+
+  "name_required": "Doctor name is required.",
+  
+  "registration_required": "Registration number is required.",
+
+  "about_required": "About doctor is required.",
+
+  "success": "Success",
+
+  "doctor_updated_successfully": "Doctor updated successfully.",
+  "doctor_update_failed": "Failed to update doctor.",
+
+  "weekly_schedule": "Weekly Schedule",
+  "doctor_schedule": "Doctor Schedule",
+  "manage_schedule_subtitle": "Configure weekly availability and session timings",
+  "session": "Session",
+  "add_session": "Add Session",
+  "start_time": "Start Time",
+  "end_time": "End Time",
+  "holiday": "Closed / Holiday",
+  "save_schedule": "Save Schedule",
+  "saving_schedule": "Saving Schedule...",
+  "schedule_saved_successfully": "Weekly schedule saved successfully.",
+  "schedule_save_failed": "Failed to save schedule.",
+  "loading_schedule": "Loading doctor schedule...",
+  "load_schedule_failed": "Failed to load doctor schedule.",
+  "time_order_error": "Start time must be earlier than end time",
+  "time_overlap_error": "Sessions must not overlap with each other",
+  "time_empty_error": "Please set both start and end times",
+  "schedule_has_errors": "Please resolve timing errors before saving",
+  "no_sessions_added": "Please add at least one session or disable the day",
+
+  "todays_doctor_schedule": "Today's Doctor Schedule",
+  "todays_availability": "Today's Availability",
+  "doctors_live_now": "Doctors Live Now",
+  "doctor_live_now": "Doctor Live Now",
+  "upcoming": "Upcoming",
+  "search_schedule_placeholder": "Search doctor or specialization...",
+  "tab_all": "All",
+  "tab_live_now": "Live Now 🟢",
+  "tab_upcoming": "Upcoming ⏳",
+  "tab_off": "Off ⚪",
+  "tab_ended": "Ended",
+  "loading_todays_schedules": "Loading today's schedules...",
+  "unable_to_load_schedule": "Unable to Load Schedule",
+  "no_doctors_found": "No doctors found",
+  "no_matching_schedules": "No Matching Schedules for Today",
+  "adjust_search_criteria": "Try adjusting your search criteria.",
+  "no_sessions_match_filter": "No doctor sessions match the selected filter.",
+  "live_now_badge": "LIVE NOW",
+  "upcoming_badge": "UPCOMING",
+  "ended_badge": "ENDED",
+  "off_badge": "OFF / INACTIVE",
+  "time_slot_label": "Time Slot:",
+  "duration_label": "Duration:",
+  "mins_per_slot": "mins per slot",
+  "doctor_availability": "Doctor Availability:",
+  "status_on_available": "ON (Available)",
+  "status_off_unavailable": "OFF (Unavailable)",
+  "doctor_on_duty": "Doctor is on duty today",
+  "doctor_off_duty": "Doctor is marked off duty today",
+  "edit_weekly_schedule": "Edit Weekly Schedule",
+  "profile": "Profile",
+  "failed_load_today_schedule": "Failed to load today's schedule",
+  "failed_update_availability": "Failed to update availability",
+  "network_error_schedule": "Network error while updating schedule"
+}

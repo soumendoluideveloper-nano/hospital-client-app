@@ -1,0 +1,4 @@
+export const STORAGE_KEYS = {
+  TOKEN: "CLINIC_TOKEN",
+  USER: "CLINIC_USER",
+};

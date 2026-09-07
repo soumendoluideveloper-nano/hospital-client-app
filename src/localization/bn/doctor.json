@@ -1,0 +1,176 @@
+{
+  "add_doctor": "ডাক্তার যোগ করুন",
+  "add_doctor_subtitle": "ডাক্তারের তথ্য পূরণ করুন",
+
+  "full_name": "সম্পূর্ণ নাম",
+  "full_name_placeholder": "ডাঃ অমিত সেন",
+
+  "mobile_number": "মোবাইল নম্বর",
+  "mobile_number_placeholder": "৯৮৭৬৫৪৩২১০",
+
+  "email": "ইমেইল",
+  "email_placeholder": "doctor@email.com",
+
+  "qualification": "শিক্ষাগত যোগ্যতা",
+  "qualification_placeholder": "MBBS, MD",
+
+  "specialization": "বিশেষজ্ঞতা",
+  "specialization_placeholder": "কার্ডিওলজিস্ট",
+
+  "experience": "অভিজ্ঞতা",
+  "experience_placeholder": "১০",
+  "experience_years": "অভিজ্ঞতা (বছর)",
+  "years": "বছর",
+
+  "registration_no": "রেজিস্ট্রেশন নম্বর",
+  "registration_no_placeholder": "WBMC123456",
+
+  "consultation_fee": "কনসালটেশন ফি",
+  "consultation_fee_placeholder": "৫০০",
+
+  "about_doctor": "ডাক্তারের সম্পর্কে",
+  "about_doctor_placeholder": "ডাক্তারের সম্পর্কে লিখুন...",
+
+  "save_doctor": "ডাক্তার সংরক্ষণ করুন",
+
+  "full_name_required": "ডাক্তারের নাম আবশ্যক।",
+  "mobile_required": "মোবাইল নম্বর আবশ্যক।",
+  "invalid_mobile": "মোবাইল নম্বর ১০ সংখ্যার হতে হবে।",
+
+  "email_required": "ইমেইল আবশ্যক।",
+  "invalid_email": "সঠিক ইমেইল ঠিকানা দিন।",
+
+  "qualification_required": "শিক্ষাগত যোগ্যতা আবশ্যক।",
+  "specialization_required": "বিশেষজ্ঞতা আবশ্যক।",
+
+  "experience_required": "অভিজ্ঞতা আবশ্যক।",
+  "invalid_experience": "সঠিক অভিজ্ঞতা লিখুন।",
+
+  "registration_no_required": "রেজিস্ট্রেশন নম্বর আবশ্যক।",
+
+  "consultation_fee_required": "কনসালটেশন ফি আবশ্যক।",
+  "invalid_consultation_fee": "সঠিক কনসালটেশন ফি দিন।",
+
+  "about_doctor_required": "ডাক্তারের সম্পর্কে তথ্য আবশ্যক।",
+
+  "ok": "ঠিক আছে",
+
+  "doctor_added": "ডাক্তার সংরক্ষণ করা হয়েছে।",
+  "doctor_added_successfully": "ডাক্তার সফলভাবে সংরক্ষণ করা হয়েছে।",
+
+  "error": "ত্রুটি",
+  "success": "সফল",
+  "something_went_wrong": "কিছু ভুল হয়েছে।",
+
+  "search_doctor": "ডাক্তার খুঁজুন...",
+  "loading_doctors": "ডাক্তারদের তথ্য লোড হচ্ছে...",
+  "loading_more": "আরও ডাক্তার লোড হচ্ছে...",
+  "load_doctors_failed": "ডাক্তারদের তথ্য লোড করা যায়নি।",
+  "retry": "আবার চেষ্টা করুন",
+
+  "no_doctor_found": "কোনো ডাক্তার পাওয়া যায়নি",
+  "no_doctors": "কোনো ডাক্তার যোগ করা হয়নি",
+  "try_another_keyword": "অন্য কোনো শব্দ দিয়ে চেষ্টা করুন",
+  "add_first_doctor": "শুরু করতে আপনার প্রথম ডাক্তার যোগ করুন।",
+
+  "doctor_information": "ডাক্তারের তথ্য",
+  "mobile": "মোবাইল",
+  "not_available": "উপলব্ধ নয়",
+
+  "about": "ডাক্তারের সম্পর্কে",
+
+  "schedule": "সময়সূচি",
+  "manage_schedule": "সময়সূচি পরিচালনা করুন",
+  "manage_doctor_schedule": "ডাক্তারের সময়সূচি পরিচালনা করুন",
+
+  "quick_actions": "দ্রুত কার্যক্রম",
+  "edit_doctor": "ডাক্তারের তথ্য সম্পাদনা করুন",
+  "appointments": "অ্যাপয়েন্টমেন্ট",
+  "delete_doctor": "ডাক্তার মুছে দিন",
+
+  "loading_doctor": "ডাক্তারের তথ্য লোড হচ্ছে...",
+  "load_doctor_failed": "ডাক্তারের তথ্য লোড করা যায়নি।",
+  "doctor_not_found": "ডাক্তারের তথ্য পাওয়া যায়নি",
+  "doctor_id_missing": "ডাক্তারের আইডি পাওয়া যায়নি।",
+
+  "delete": "মুছে দিন",
+  "cancel": "বাতিল",
+  "delete_doctor_confirmation": "আপনি কি নিশ্চিত যে এই ডাক্তারকে মুছে দিতে চান?",
+
+  "update_doctor_information": "ডাক্তারের তথ্য আপডেট করুন",
+
+  "enter_doctor_name": "ডাক্তারের নাম লিখুন",
+  "enter_mobile": "মোবাইল নম্বর লিখুন",
+  "enter_email": "ইমেইল ঠিকানা লিখুন",
+  "enter_qualification": "শিক্ষাগত যোগ্যতা লিখুন",
+  "enter_specialization": "বিশেষজ্ঞতা লিখুন",
+  "enter_experience": "অভিজ্ঞতা লিখুন",
+  "enter_registration": "রেজিস্ট্রেশন নম্বর লিখুন",
+  "enter_consultation_fee": "কনসালটেশন ফি লিখুন",
+  "write_about_doctor": "ডাক্তারের সম্পর্কে লিখুন...",
+
+  "update_doctor": "ডাক্তারের তথ্য আপডেট করুন",
+
+  "name_required": "ডাক্তারের নাম আবশ্যক।",
+  "invalid_experience_update": "সঠিক অভিজ্ঞতা লিখুন।",
+  "registration_required": "রেজিস্ট্রেশন নম্বর আবশ্যক।",
+  "about_required": "ডাক্তারের সম্পর্কে তথ্য আবশ্যক।",
+
+  "doctor_updated_successfully": "ডাক্তারের তথ্য সফলভাবে আপডেট করা হয়েছে।",
+  "doctor_update_failed": "ডাক্তারের তথ্য আপডেট করা যায়নি।",
+
+  "weekly_schedule": "সাপ্তাহিক সময়সূচি",
+  "doctor_schedule": "ডাক্তারের সময়সূচি",
+  "manage_schedule_subtitle": "সাপ্তাহিক প্রাপ্যতা এবং সেশন সময় নির্ধারণ করুন",
+  "session": "সেশন",
+  "add_session": "সেশন যোগ করুন",
+  "start_time": "শুরুর সময়",
+  "end_time": "শেষের সময়",
+  "holiday": "ছুটির দিন / বন্ধ",
+  "save_schedule": "সময়সূচি সংরক্ষণ করুন",
+  "saving_schedule": "সংরক্ষণ করা হচ্ছে...",
+  "schedule_saved_successfully": "সাপ্তাহিক সময়সূচি সফলভাবে সংরক্ষিত হয়েছে।",
+  "schedule_save_failed": "সময়সূচি সংরক্ষণ করা যায়নি।",
+  "loading_schedule": "সময়সূচি লোড হচ্ছে...",
+  "load_schedule_failed": "সময়সূচি লোড করা যায়নি।",
+  "time_order_error": "শুরুর সময় শেষের সময়ের আগের হতে হবে",
+  "time_overlap_error": "সেশনের সময় একে অপরের সাথে মিলতে পারবে না",
+  "time_empty_error": "দয়া করে শুরু এবং শেষের সময় নির্বাচন করুন",
+  "schedule_has_errors": "সংরক্ষণ করার আগে সময়ের ত্রুটিগুলি সমাধান করুন",
+  "no_sessions_added": "কমপক্ষে একটি সেশন যোগ করুন অথবা দিনটি নিষ্ক্রিয় করুন",
+
+  "todays_doctor_schedule": "আজকের ডাক্তারের সময়সূচি",
+  "todays_availability": "আজকের প্রাপ্যতা",
+  "doctors_live_now": "ডাক্তার লাইভ আছেন",
+  "doctor_live_now": "ডাক্তার লাইভ আছেন",
+  "upcoming": "আসন্ন",
+  "search_schedule_placeholder": "ডাক্তার বা বিশেষজ্ঞতা খুঁজুন...",
+  "tab_all": "সমস্ত",
+  "tab_live_now": "লাইভ এখন 🟢",
+  "tab_upcoming": "আসন্ন ⏳",
+  "tab_off": "অফ ⚪",
+  "tab_ended": "শেষ হয়েছে",
+  "loading_todays_schedules": "আজকের সময়সূচি লোড হচ্ছে...",
+  "unable_to_load_schedule": "সময়সূচি লোড করতে সমস্যা হয়েছে",
+  "no_doctors_found": "কোনো ডাক্তার পাওয়া যায়নি",
+  "no_matching_schedules": "আজকের জন্য কোনো মিলযুক্ত সময়সূচি নেই",
+  "adjust_search_criteria": "আপনার অনুসন্ধানের তথ্য পরিবর্তন করে চেষ্টা করুন।",
+  "no_sessions_match_filter": "নির্বাচিত ফিল্টারের সাথে কোনো ডাক্তারের সেশন মিলছে না।",
+  "live_now_badge": "লাইভ এখন",
+  "upcoming_badge": "আসন্ন",
+  "ended_badge": "শেষ হয়েছে",
+  "off_badge": "অফ / নিষ্ক্রিয়",
+  "time_slot_label": "সময়:",
+  "duration_label": "সময়সীমা:",
+  "mins_per_slot": "মিনিট প্রতি স্লট",
+  "doctor_availability": "ডাক্তারের প্রাপ্যতা:",
+  "status_on_available": "চালু (উপলব্ধ)",
+  "status_off_unavailable": "বন্ধ (অনুপলব্ধ)",
+  "doctor_on_duty": "ডাক্তার আজ ডিউটিতে আছেন",
+  "doctor_off_duty": "ডাক্তার আজ বন্ধ হিসেবে চিহ্নিত",
+  "edit_weekly_schedule": "সাপ্তাহিক সময়সূচি সম্পাদনা",
+  "profile": "প্রোফাইল",
+  "failed_load_today_schedule": "আজকের সময়সূচি লোড করা যায়নি",
+  "failed_update_availability": "প্রাপ্যতা আপডেট করতে ব্যর্থ হয়েছে",
+  "network_error_schedule": "সময়সূচি আপডেট করার সময় নেটওয়ার্ক ত্রুটি"
+}

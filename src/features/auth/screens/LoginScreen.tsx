@@ -1,0 +1,412 @@
+import React, { useEffect, useState } from "react";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { loginApi } from "../api/auth.api";
+import useAuth from "../../../hooks/useAuth";
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  StyleSheet,
+  KeyboardAvoidingView,
+  Platform,
+  Image,
+} from "react-native";
+import { useTranslation } from "react-i18next";
+import { useNavigation } from "@react-navigation/native";
+import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import { Ionicons } from "@expo/vector-icons";
+import { RootStackParamList } from "../../../navigation/AppNavigator";
+import { Pressable, Keyboard } from "react-native";
+import {
+  // loadLanguage,
+  isLanguageSelected,
+} from "../../../localization/i18n";
+import LanguageModal from "../../../components/ui/LanguageModal";
+type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
+
+export default function LoginScreen() {
+  const { t: common } = useTranslation("common");
+  const { t: auth } = useTranslation("auth");
+  const { t: signup } = useTranslation("signup");
+
+  const { login } = useAuth();
+
+  const [loading, setLoading] =
+    useState(false);
+
+  const navigation = useNavigation<NavigationProp>();
+
+  const [mobile, setMobile] = useState("");
+  const [password, setPassword] = useState("");
+  const [mobileError, setMobileError] = useState("");
+  const [passwordError, setPasswordError] = useState("");
+  const [showLanguage, setShowLanguage] = useState(false);
+
+  useEffect(() => {
+    const checkLanguage = async () => {
+      const selected = await isLanguageSelected();
+
+      if (!selected) {
+        setShowLanguage(true);
+      }
+    };
+
+    checkLanguage();
+  }, []);
+  const handleLogin = async () => {
+    setMobileError("");
+    setPasswordError("");
+
+    let isValid = true;
+
+    if (!mobile.trim()) {
+      setMobileError(auth("mobile_required"));
+      isValid = false;
+    } else if (mobile.length !== 10) {
+      setMobileError(auth("invalid_mobile"));
+      isValid = false;
+    }
+
+    if (!password.trim()) {
+      setPasswordError(signup("password_required"));
+      isValid = false;
+    }
+
+    if (!isValid) return;
+
+    try {
+      setLoading(true);
+
+      const response = await loginApi({
+        phone: mobile,
+        password,
+      });
+      if (!response || !response.data || !response.data.token) {
+        throw new Error(auth("login_wrong"));
+      }
+
+      console.log(response);
+
+      const token = response?.data?.token ?? "";
+      const clinic = response?.data?.clinic ?? "";
+
+      await login(token, clinic);
+
+      // AppNavigator automatically Dashboard দেখাবে
+
+    } catch (err: any) {
+      console.log(err);
+      setPasswordError(
+        err.message || auth("login_failed")
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSignup = () => {
+    navigation.navigate("Signup");
+  };
+
+  return (
+    <SafeAreaView style={styles.container}>
+      <Pressable
+        style={{ flex: 1 }}
+        onPress={Keyboard.dismiss}
+      >
+        <KeyboardAvoidingView
+          style={styles.wrapper}
+          behavior={Platform.OS === "ios" ? "padding" : "height"}
+        >
+          <View style={{ alignItems: "center" }}>
+            <View style={styles.logoIconBox}>
+              <Image
+                source={require("../../../../assets/care_spot_icon.png")}
+                style={styles.logoIconImage}
+                resizeMode="contain"
+              />
+            </View>
+
+            <Text style={styles.title}>Care Spot</Text>
+
+            <View style={styles.partnerBadge}>
+              <Text style={styles.partnerBadgeText}>CLINIC PARTNER</Text>
+            </View>
+
+            <Text style={styles.subtitle}>
+              {auth("login_subtitle")}
+            </Text>
+          </View>
+
+          <View style={styles.form}>
+            <Text style={styles.label}>
+              {common("mobile_number")}
+            </Text>
+
+            <View
+              style={[
+                styles.inputContainer,
+                mobileError && styles.errorInput,
+              ]}
+            >
+              <Ionicons
+                name="call-outline"
+                size={20}
+                color="#64748B"
+                style={styles.icon}
+              />
+
+              <TextInput
+                style={styles.input}
+                placeholder={common("enter_mobile")}
+                keyboardType="phone-pad"
+                maxLength={10}
+                value={mobile}
+                onChangeText={(text) => {
+                  setMobile(text);
+                  if (mobileError) setMobileError("");
+                }}
+              />
+            </View>
+
+            {mobileError ? (
+              <Text style={styles.errorText}>{mobileError}</Text>
+            ) : null}
+
+            <Text style={styles.label}>
+              {common("password")}
+            </Text>
+
+            <View
+              style={[
+                styles.inputContainer,
+                passwordError && styles.errorInput,
+              ]}
+            >
+              <Ionicons
+                name="lock-closed-outline"
+                size={20}
+                color="#64748B"
+                style={styles.icon}
+              />
+
+              <TextInput
+                style={styles.input}
+                placeholder={common("enter_password")}
+                secureTextEntry
+                value={password}
+                onChangeText={(text) => {
+                  setPassword(text);
+                  if (passwordError) setPasswordError("");
+                }}
+              />
+            </View>
+
+            {passwordError ? (
+              <Text style={styles.errorText}>{passwordError}</Text>
+            ) : null}
+
+            <TouchableOpacity
+              style={styles.button}
+              onPress={handleLogin}
+              disabled={loading}
+            >
+              <Text style={styles.buttonText}>
+                {loading
+                  ? common("please_wait")
+                  : common("login")}
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.signupButton}
+              onPress={handleSignup}
+            >
+              <Text style={styles.signupText}>
+                {auth("dont_have_account")}{" "}
+                <Text style={styles.signupLink}>
+                  {common("create_account")}
+                </Text>
+              </Text>
+            </TouchableOpacity>
+
+          </View>
+
+          <Text style={styles.footer}>
+            {common("footer")}
+          </Text>
+
+        </KeyboardAvoidingView>
+      </Pressable>
+      <LanguageModal
+        visible={showLanguage}
+        onClose={() => setShowLanguage(false)}
+      />
+    </SafeAreaView>
+  );
+}
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: "#F8FAFC",
+  },
+
+  wrapper: {
+    flex: 1,
+    justifyContent: "space-between",
+    paddingHorizontal: 24,
+    paddingVertical: 40,
+  },
+
+  logoIconBox: {
+    width: 86,
+    height: 86,
+    borderRadius: 26,
+    backgroundColor: "#FFFFFF",
+    justifyContent: "center",
+    alignItems: "center",
+    padding: 12,
+    borderWidth: 1.5,
+    borderColor: "#E2E8F0",
+    shadowColor: "#0284C7",
+    shadowOpacity: 0.18,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 5,
+    marginTop: 8,
+  },
+
+  logoIconImage: {
+    width: "100%",
+    height: "100%",
+  },
+
+  title: {
+    fontSize: 26,
+    fontWeight: "800",
+    color: "#0F172A",
+    textAlign: "center",
+    marginTop: 10,
+    letterSpacing: 0.5,
+  },
+
+  partnerBadge: {
+    backgroundColor: "#EFF6FF",
+    borderWidth: 1,
+    borderColor: "#BFDBFE",
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+    borderRadius: 12,
+    marginTop: 6,
+  },
+
+  partnerBadgeText: {
+    color: "#2563EB",
+    fontSize: 11,
+    fontWeight: "800",
+    letterSpacing: 1.2,
+  },
+
+  subtitle: {
+    marginTop: 8,
+    textAlign: "center",
+    color: "#64748B",
+    fontSize: 14,
+    lineHeight: 20,
+    paddingHorizontal: 12,
+  },
+
+  form: {
+    marginTop: 20,
+  },
+
+  label: {
+    marginBottom: 8,
+    marginTop: 16,
+    color: "#334155",
+    fontWeight: "600",
+    fontSize: 15,
+  },
+
+  // input: {
+  //   height: 56,
+  //   borderWidth: 1,
+  //   borderColor: "#CBD5E1",
+  //   borderRadius: 12,
+  //   paddingHorizontal: 16,
+  //   backgroundColor: "#FFFFFF",
+  //   fontSize: 16,
+  //   color: "#0F172A",
+  // },
+  input: {
+    flex: 1,
+    fontSize: 16,
+    color: "#0F172A",
+  },
+
+  button: {
+    marginTop: 28,
+    backgroundColor: "#2563EB",
+    height: 56,
+    borderRadius: 12,
+    justifyContent: "center",
+    alignItems: "center",
+    elevation: 3,
+  },
+
+  buttonText: {
+    color: "#FFFFFF",
+    fontSize: 16,
+    fontWeight: "700",
+  },
+
+  signupButton: {
+    marginTop: 20,
+    alignItems: "center",
+  },
+
+  signupText: {
+    color: "#64748B",
+    fontSize: 15,
+  },
+
+  signupLink: {
+    color: "#2563EB",
+    fontWeight: "700",
+  },
+
+  footer: {
+    textAlign: "center",
+    color: "#94A3B8",
+    marginBottom: 10,
+    fontSize: 13,
+  },
+  errorInput: {
+    borderColor: "#EF4444",
+  },
+
+  errorText: {
+    color: "#EF4444",
+    fontSize: 13,
+    marginTop: 5,
+    marginLeft: 3,
+    fontWeight: "500",
+  },
+  inputContainer: {
+    height: 56,
+    borderWidth: 1,
+    borderColor: "#CBD5E1",
+    borderRadius: 12,
+    backgroundColor: "#FFFFFF",
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 15,
+  },
+
+  icon: {
+    marginRight: 10,
+  },
+
+
+});

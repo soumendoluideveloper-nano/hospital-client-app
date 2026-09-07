@@ -1,0 +1,63 @@
+{
+  "app_name": "क्लिनिक पार्टनर",
+  "choose_language": "अपनी भाषा चुनें",
+  "select_language": "अपनी पसंदीदा भाषा चुनें",
+  "continue": "जारी रखें",
+
+  "login_title": "क्लिनिक पार्टनर",
+  "login_subtitle": "अपने क्लिनिक को प्रबंधित करने के लिए साइन इन करें",
+
+
+  "send_otp": "ओटीपी भेजें",
+
+  "create_account": "खाता बनाएं",
+  "dont_have_account": "क्या आपका क्लिनिक खाता नहीं है?",
+  "footer": "© 2026 क्लिनिक पार्टनर। सर्वाधिकार सुरक्षित।",
+  "invalid_mobile": "कृपया सही मोबाइल नंबर दर्ज करें",
+  "signup_title": "क्लिनिक खाता बनाएं",
+  "signup_subtitle": "Clinic Partner से जुड़ें और अपने क्लिनिक को आसानी से प्रबंधित करें।",
+
+  "clinic_name": "क्लिनिक का नाम",
+  "clinic_name_placeholder": "ABC Clinic",
+
+  "owner_name": "मालिक का नाम",
+  "owner_name_placeholder": "डॉ. राहुल सेन",
+
+  "mobile_number": "मोबाइल नंबर",
+  "enter_mobile": "मोबाइल नंबर दर्ज करें",
+
+  "email": "ईमेल पता",
+  "email_placeholder": "clinic@email.com",
+
+  "password": "पासवर्ड",
+  "enter_password": "पासवर्ड दर्ज करें",
+
+  "confirm_password": "पासवर्ड की पुष्टि करें",
+  "confirm_password_placeholder": "दोबारा पासवर्ड दर्ज करें",
+
+  "address": "पता",
+  "address_placeholder": "क्लिनिक का पता",
+
+  "city": "शहर",
+  "city_placeholder": "कोलकाता",
+
+  "state": "राज्य",
+  "state_placeholder": "पश्चिम बंगाल",
+
+  "pincode": "पिनकोड",
+  "pincode_placeholder": "700001",
+
+  "referral_code": "रेफरल कोड (वैकल्पिक)",
+  "referral_code_placeholder": "रेफरल कोड दर्ज करें",
+
+  "already_have_account": "क्या आपका पहले से खाता है?",
+  "login": "लॉगिन करें",
+
+
+  "clinic_name_required": "कृपया क्लिनिक का नाम दर्ज करें।",
+  "owner_name_required": "कृपया मालिक का नाम दर्ज करें।",
+  "email_required": "कृपया ईमेल दर्ज करें।",
+  "password_required": "कृपया पासवर्ड दर्ज करें।",
+  "password_not_match": "दोनों पासवर्ड मेल नहीं खाते।",
+  "account_created": "खाता सफलतापूर्वक बन गया।"
+}

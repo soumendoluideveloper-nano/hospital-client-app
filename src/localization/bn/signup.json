@@ -1,0 +1,60 @@
+{
+  "signup_title": "ক্লিনিক অ্যাকাউন্ট তৈরি করুন",
+  "signup_subtitle": "Clinic Partner-এর সাথে যুক্ত হয়ে সহজে আপনার ক্লিনিক পরিচালনা করুন।",
+
+  "step_mobile": "মোবাইল",
+  "step_clinic": "ক্লিনিক",
+  "step_address": "ঠিকানা",
+  "step_security": "নিরাপত্তা",
+
+  "clinic_details": "ক্লিনিকের তথ্য",
+  "clinic_details_subtitle": "আপনার ক্লিনিকের তথ্য প্রদান করুন।",
+
+  "security_title": "অ্যাকাউন্ট নিরাপত্তা",
+  "security_subtitle": "আপনার অ্যাকাউন্টের তথ্য সম্পূর্ণ করুন।",
+
+  "clinic_name": "ক্লিনিকের নাম",
+  "clinic_name_placeholder": "ABC Clinic",
+
+  "owner_name": "মালিকের নাম",
+  "owner_name_placeholder": "ডাঃ রাহুল সেন",
+
+  "confirm_password": "পাসওয়ার্ড নিশ্চিত করুন",
+  "confirm_password_placeholder": "আবার পাসওয়ার্ড লিখুন",
+
+  "referral_code": "রেফারেল কোড (ঐচ্ছিক)",
+  "referral_code_placeholder": "রেফারেল কোড লিখুন",
+
+  "send_otp": "ওটিপি পাঠান",
+  "verify_otp": "ওটিপি যাচাই করুন",
+  "mobile_verified": "মোবাইল নম্বর সফলভাবে যাচাই হয়েছে",
+
+  "back": "পেছনে",
+  "next": "পরবর্তী",
+  "create_account": "অ্যাকাউন্ট তৈরি করুন",
+
+  "already_have_account": "আগে থেকেই অ্যাকাউন্ট আছে?",
+
+  "clinic_name_required": "অনুগ্রহ করে ক্লিনিকের নাম লিখুন।",
+  "owner_name_required": "অনুগ্রহ করে মালিকের নাম লিখুন।",
+
+  "email_required": "অনুগ্রহ করে ইমেইল লিখুন।",
+  "invalid_email": "সঠিক ইমেইল ঠিকানা লিখুন।",
+
+  "password_required": "অনুগ্রহ করে পাসওয়ার্ড লিখুন।",
+  "password_min_length": "পাসওয়ার্ড কমপক্ষে ৬ অক্ষরের হতে হবে।",
+
+  "confirm_password_required": "অনুগ্রহ করে পাসওয়ার্ড নিশ্চিত করুন।",
+  "password_not_match": "দুইটি পাসওয়ার্ড মিলছে না।",
+
+  "account_created": "অ্যাকাউন্ট সফলভাবে তৈরি হয়েছে।",
+ "resend_otp": "আবার OTP পাঠান",
+"otp_resent_successfully": "OTP পুনরায় সফলভাবে পাঠানো হয়েছে।",
+"otp_sent_successfully": "OTP সফলভাবে পাঠানো হয়েছে।",
+ "registration_successful": "নিবন্ধন সফল হয়েছে",
+  "registration_success_message": "আপনার ক্লিনিক অ্যাকাউন্ট সফলভাবে তৈরি হয়েছে।",
+  "continue_login": "লগইনে যান",
+  "registration_failed": "নিবন্ধন ব্যর্থ হয়েছে",
+  "try_again": "আবার চেষ্টা করুন",
+  "something_went_wrong": "কিছু সমস্যা হয়েছে। আবার চেষ্টা করুন।"
+}

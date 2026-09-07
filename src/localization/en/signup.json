@@ -1,0 +1,64 @@
+{
+  "signup_title": "Create Clinic Account",
+  "signup_subtitle": "Join Clinic Partner and manage your clinic with ease.",
+
+  "step_mobile": "Verify Mobile Number",
+  "step_mobile_subtitle": "Enter your mobile number to receive an OTP.",
+
+  "clinic_details": "Clinic Details",
+  "clinic_details_subtitle": "Tell us about your clinic.",
+
+  "address_details": "Address Details",
+  "address_details_subtitle": "Enter your clinic address.",
+
+  "account_security": "Account Security",
+  "account_security_subtitle": "Create your login credentials.",
+
+  "clinic_name": "Clinic Name",
+  "clinic_name_placeholder": "ABC Clinic",
+
+  "owner_name": "Owner Name",
+  "owner_name_placeholder": "Dr. Rahul Sen",
+
+  "address_required": "Please enter your address.",
+  "city_required": "Please enter your city.",
+  "state_required": "Please enter your state.",
+  "pincode_required": "Please enter your pincode.",
+  "invalid_pincode": "Please enter a valid 6-digit pincode.",
+
+  "email_required": "Please enter your email address.",
+  "invalid_email": "Please enter a valid email address.",
+
+  "password_required": "Please enter your password.",
+  "password_min": "Password must be at least 6 characters long.",
+
+  "confirm_password": "Confirm Password",
+  "confirm_password_placeholder": "Re-enter your password",
+  "confirm_password_required": "Please confirm your password.",
+  "password_not_match": "Passwords do not match.",
+
+  "referral_code": "Referral Code (Optional)",
+  "referral_code_placeholder": "Enter Referral Code",
+
+  "send_otp": "Send OTP",
+  "verify_otp": "Verify OTP",
+  "mobile_verified": "Mobile number verified successfully.",
+
+  "already_have_account": "Already have an account?",
+
+  "clinic_name_required": "Please enter the clinic name.",
+  "owner_name_required": "Please enter the owner's name.",
+
+  "account_created": "Account created successfully.",
+  "resend_otp": "Resend OTP",
+  "otp_sent_successfully": "OTP sent successfully.",
+"otp_resent_successfully": "OTP resent successfully.",
+ "registration_successful": "Registration Successful",
+  "registration_success_message": "Your clinic account has been created successfully.",
+  "continue_login": "Continue to Login",
+   "registration_failed": "Registration Failed",
+  "try_again": "Try Again",
+  "something_went_wrong": "Something went wrong. Please try again."
+
+
+}

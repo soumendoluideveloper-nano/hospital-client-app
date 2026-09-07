@@ -1,0 +1,55 @@
+{
+  "title": "রোগীর অনুসন্ধান ও কল (Enquiries)",
+  "details_title": "অনুসন্ধানের বিস্তারিত",
+  "search_placeholder": "রোগীর নাম, ফোন নম্বর, ডাক্তার দিয়ে খুঁজুন...",
+  "no_enquiries": "কোনো অনুসন্ধান বা কল পাওয়া যায়নি",
+  "no_enquiries_desc": "রোগীরা অ্যাপ থেকে ডাক্তারকে কল বা অনুসন্ধান করলে এখানে দেখতে পাবেন।",
+  "refresh": "রিফ্রেশ করুন",
+  "today_patients": "আজকের রোগী",
+  "tabs": {
+    "pending": "নতুন কল / রিকোয়েস্ট",
+    "today": "আজকের রোগী (Accepted)",
+    "accepted": "অ্যাকসেপ্টেড",
+    "cancelled": "বাতিল",
+    "all": "সমস্ত"
+  },
+  "status": {
+    "pending": "নতুন কল",
+    "accepted": "অ্যাকসেপ্টেড",
+    "confirmed": "কনফার্মড",
+    "cancelled": "বাতিল"
+  },
+  "card": {
+    "call": "কল করুন",
+    "accept": "অ্যাকসেপ্ট",
+    "cancel": "ক্যানসেল",
+    "view_details": "বিস্তারিত",
+    "patient": "রোগী",
+    "mobile": "মোবাইল",
+    "doctor": "ডাক্তার",
+    "time": "সময়"
+  },
+  "details": {
+    "patient_info": "রোগীর তথ্য",
+    "patient_name": "নাম",
+    "mobile": "মোবাইল",
+    "doctor_selected": "নির্বাচিত ডাক্তার",
+    "doctor_name": "ডাক্তার",
+    "specialization": "বিশেষজ্ঞতা",
+    "consultation_fee": "ফি",
+    "contact_info": "কলের তথ্য",
+    "contact_time": "সময়",
+    "source": "উৎস",
+    "source_app": "রোগীর মোবাইল অ্যাপ (সরাসরি কল)",
+    "reason": "বার্তা / কারণ",
+    "call_patient": "রোগীকে কল করুন",
+    "accept_enquiry": "অ্যাকসেপ্ট করুন",
+    "cancel_enquiry": "ক্যানসেল করুন"
+  },
+  "messages": {
+    "accept_success": "রোগীর রিকোয়েস্ট সফলভাবে অ্যাকসেপ্ট করা হয়েছে এবং আজকের তালিকায় যুক্ত হয়েছে!",
+    "cancel_success": "রিকোয়েস্টটি ক্যানসেল করা হয়েছে।",
+    "error": "কিছু সমস্যা হয়েছে। দয়া করে আবার চেষ্টা করুন।",
+    "phone_not_available": "রোগীর ফোন নম্বর পাওয়া যায়নি।"
+  }
+}

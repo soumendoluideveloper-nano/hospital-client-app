@@ -1,0 +1,55 @@
+{
+  "title": "Patient Enquiries & Calls",
+  "details_title": "Enquiry Details",
+  "search_placeholder": "Search patient name, phone, doctor...",
+  "no_enquiries": "No patient enquiries found",
+  "no_enquiries_desc": "When patients call or enquire from the app, they will appear here.",
+  "refresh": "Refresh",
+  "today_patients": "Today's Patients",
+  "tabs": {
+    "pending": "New Calls",
+    "today": "Today's Patients",
+    "accepted": "Accepted",
+    "cancelled": "Cancelled",
+    "all": "All"
+  },
+  "status": {
+    "pending": "NEW CALL",
+    "accepted": "ACCEPTED",
+    "confirmed": "CONFIRMED",
+    "cancelled": "CANCELLED"
+  },
+  "card": {
+    "call": "Call",
+    "accept": "Accept",
+    "cancel": "Cancel",
+    "view_details": "Details",
+    "patient": "Patient",
+    "mobile": "Mobile",
+    "doctor": "Doctor",
+    "time": "Time"
+  },
+  "details": {
+    "patient_info": "Patient Information",
+    "patient_name": "Name",
+    "mobile": "Mobile",
+    "doctor_selected": "Doctor Inquired",
+    "doctor_name": "Doctor",
+    "specialization": "Specialization",
+    "consultation_fee": "Fee",
+    "contact_info": "Call / Enquiry Info",
+    "contact_time": "Time",
+    "source": "Source",
+    "source_app": "Patient Mobile App",
+    "reason": "Enquiry Message",
+    "call_patient": "Call Patient",
+    "accept_enquiry": "Accept Enquiry",
+    "cancel_enquiry": "Cancel Enquiry"
+  },
+  "messages": {
+    "accept_success": "Patient accepted and added to Today's Patients count!",
+    "cancel_success": "Patient enquiry has been cancelled.",
+    "error": "Something went wrong. Please try again.",
+    "phone_not_available": "Patient phone number is not available."
+  }
+}
