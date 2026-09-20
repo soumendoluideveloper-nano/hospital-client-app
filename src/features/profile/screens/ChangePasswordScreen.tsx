@@ -149,25 +149,32 @@ const handleChangePassword = async () => {
 };
   return (
     <SafeAreaView
-            style={styles.container}
-            edges={["top"]}
-          >
+      style={styles.container}
+      edges={["top"]}
+    >
+      {/* Navigation Header */}
+      <View style={styles.navHeader}>
+        <TouchableOpacity
+          style={styles.backBtn}
+          onPress={() => navigation.goBack()}
+          activeOpacity={0.7}
+        >
+          <Ionicons name="arrow-back" size={24} color="#0F172A" />
+        </TouchableOpacity>
+        <Text style={styles.navTitle}>{auth("change_password")}</Text>
+        <View style={{ width: 40 }} />
+      </View>
+
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{
           paddingBottom: 40,
         }}
       >
-      
-
         <View style={styles.header}>
-          <Text style={styles.title}>
-  {auth("change_password")}
-</Text>
-
-<Text style={styles.subtitle}>
-  {auth("change_password_subtitle")}
-</Text>
+          <Text style={styles.subtitle}>
+            {auth("change_password_subtitle")}
+          </Text>
         </View>
 
       
@@ -400,10 +407,35 @@ const styles = StyleSheet.create({
     backgroundColor: "#F8FAFC",
   },
 
+  navHeader: {
+    height: 56,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: 16,
+    backgroundColor: "#FFFFFF",
+    borderBottomWidth: 1,
+    borderBottomColor: "#E2E8F0",
+  },
+
+  backBtn: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+
+  navTitle: {
+    fontSize: 18,
+    fontWeight: "700",
+    color: "#0F172A",
+  },
+
   header: {
     paddingHorizontal: 20,
-    paddingTop: 20,
-    marginBottom: 20,
+    paddingTop: 16,
+    marginBottom: 10,
   },
 
   title: {

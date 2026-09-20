@@ -9,6 +9,7 @@ import {
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
+import CareSpotBrand from "../../../components/ui/CareSpotBrand";
 
 export default function SplashScreen() {
   const fade = useRef(new Animated.Value(0)).current;
@@ -30,7 +31,7 @@ export default function SplashScreen() {
       }),
       Animated.timing(progress, {
         toValue: 100,
-        duration: 2000,
+        duration: 2300,
         useNativeDriver: false,
       }),
     ]).start();
@@ -74,7 +75,11 @@ export default function SplashScreen() {
           </View>
 
           {/* Brand Title */}
-          <Text style={styles.brandTitle}>Care Spot</Text>
+          <CareSpotBrand
+            fontSize={32}
+            theme="dark"
+            style={{ marginTop: 20 }}
+          />
 
           {/* Clinic Partner Badge */}
           <View style={styles.badge}>
@@ -100,8 +105,7 @@ export default function SplashScreen() {
 
         <Text style={styles.version}>Version 1.0.0</Text>
 
-        <Text style={styles.powered}>Powered by</Text>
-        <Text style={styles.company}>S4 Technologies Pvt. Ltd.</Text>
+
       </View>
     </LinearGradient>
   );
@@ -166,14 +170,6 @@ const styles = StyleSheet.create({
   logoImage: {
     width: "100%",
     height: "100%",
-  },
-
-  brandTitle: {
-    fontSize: 32,
-    fontWeight: "800",
-    color: "#FFFFFF",
-    marginTop: 20,
-    letterSpacing: 1,
   },
 
   badge: {

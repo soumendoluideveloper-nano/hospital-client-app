@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
   View,
   Text,
@@ -10,6 +10,8 @@ import {
   RefreshControl,
   Linking,
   ScrollView,
+  Modal,
+  Pressable,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
@@ -21,6 +23,7 @@ import {
   cancelEnquiryApi,
 } from "../api/enquiry.api";
 import { EnquiryItem, EnquiryStatus } from "../types/patient.types";
+import { listDoctorsApi, Doctor } from "../../doctor/api/doctor.api";
 import StatusModal from "../../../components/ui/StatusModal";
 
 type FilterTab = "Pending" | "TODAY" | "ALL" | "Cancelled";
@@ -45,6 +48,44 @@ export default function EnquiryScreen() {
   const [modalMessage, setModalMessage] = useState("");
   const [modalType, setModalType] = useState<"success" | "error" | "warning">("success");
 
+  // Additional Filters: Day, Doctor, Specialization
+  const [filterModalVisible, setFilterModalVisible] = useState(false);
+  const [selectedDay, setSelectedDay] = useState<string>("ALL");
+  const [selectedDoctorId, setSelectedDoctorId] = useState<number | string>("ALL");
+  const [selectedSpecialization, setSelectedSpecialization] = useState<string>("ALL");
+
+  // Temp state inside Filter Modal
+  const [tempDay, setTempDay] = useState<string>("ALL");
+  const [tempDoctorId, setTempDoctorId] = useState<number | string>("ALL");
+  const [tempSpecialization, setTempSpecialization] = useState<string>("ALL");
+
+  // Doctor & Specialization Options
+  const [doctorList, setDoctorList] = useState<Doctor[]>([]);
+  const [specializations, setSpecializations] = useState<string[]>([]);
+
+  // Load doctors and unique specializations on mount
+  useEffect(() => {
+    const loadDoctors = async () => {
+      try {
+        const res = await listDoctorsApi(1, 100);
+        if (res.status === 1 && Array.isArray(res.data)) {
+          setDoctorList(res.data);
+          const specs = Array.from(
+            new Set(
+              res.data
+                .map((d) => d.specialization?.trim())
+                .filter(Boolean) as string[]
+            )
+          );
+          setSpecializations(specs);
+        }
+      } catch (err) {
+        console.log("loadDoctors error in EnquiryScreen:", err);
+      }
+    };
+    loadDoctors();
+  }, []);
+
   // Sync route param filter if updated (e.g. from Dashboard "Today's Patients" card)
   useEffect(() => {
     if (route.params?.filter) {
@@ -64,6 +105,18 @@ export default function EnquiryScreen() {
           params.status = activeTab;
         }
 
+        if (selectedDoctorId && selectedDoctorId !== "ALL") {
+          params.doctor_id = selectedDoctorId;
+        }
+
+        if (selectedSpecialization && selectedSpecialization !== "ALL") {
+          params.specialization = selectedSpecialization;
+        }
+
+        if (selectedDay && selectedDay !== "ALL") {
+          params.day = selectedDay;
+        }
+
         if (search.trim()) {
           params.search = search.trim();
         }
@@ -81,8 +134,55 @@ export default function EnquiryScreen() {
         setRefreshing(false);
       }
     },
-    [activeTab, search]
+    [activeTab, search, selectedDoctorId, selectedSpecialization, selectedDay]
   );
+
+  const openFilterModal = () => {
+    setTempDay(selectedDay);
+    setTempDoctorId(selectedDoctorId);
+    setTempSpecialization(selectedSpecialization);
+    setFilterModalVisible(true);
+  };
+
+  const applyModalFilters = () => {
+    setSelectedDay(tempDay);
+    setSelectedDoctorId(tempDoctorId);
+    setSelectedSpecialization(tempSpecialization);
+    setFilterModalVisible(false);
+  };
+
+  const clearModalFilters = () => {
+    setTempDay("ALL");
+    setTempDoctorId("ALL");
+    setTempSpecialization("ALL");
+  };
+
+  const clearAllFilters = () => {
+    setSelectedDay("ALL");
+    setSelectedDoctorId("ALL");
+    setSelectedSpecialization("ALL");
+    setTempDay("ALL");
+    setTempDoctorId("ALL");
+    setTempSpecialization("ALL");
+  };
+
+  const activeFiltersCount =
+    (selectedDay !== "ALL" ? 1 : 0) +
+    (selectedDoctorId !== "ALL" ? 1 : 0) +
+    (selectedSpecialization !== "ALL" ? 1 : 0);
+
+  const daysList = [
+    { key: "ALL", label: t("filters.all_days") },
+    { key: "TODAY", label: t("filters.today") },
+    { key: "TOMORROW", label: t("filters.tomorrow") },
+    { key: "Monday", label: t("filters.monday") },
+    { key: "Tuesday", label: t("filters.tuesday") },
+    { key: "Wednesday", label: t("filters.wednesday") },
+    { key: "Thursday", label: t("filters.thursday") },
+    { key: "Friday", label: t("filters.friday") },
+    { key: "Saturday", label: t("filters.saturday") },
+    { key: "Sunday", label: t("filters.sunday") },
+  ];
 
   useFocusEffect(
     useCallback(() => {
@@ -405,25 +505,113 @@ export default function EnquiryScreen() {
         </TouchableOpacity>
       </View>
 
-      {/* Search Box */}
-      <View style={styles.searchContainer}>
-        <Ionicons name="search" size={18} color="#94A3B8" />
-        <TextInput
-          placeholder={t("search_placeholder")}
-          placeholderTextColor="#94A3B8"
-          style={styles.searchInput}
-          value={search}
-          onChangeText={setSearch}
-          onSubmitEditing={() => fetchEnquiries()}
-          returnKeyType="search"
-          clearButtonMode="while-editing"
-        />
-        {search.length > 0 && (
-          <TouchableOpacity onPress={() => setSearch("")}>
-            <Ionicons name="close-circle" size={18} color="#94A3B8" />
-          </TouchableOpacity>
-        )}
+      {/* Search & Filter Row */}
+      <View style={styles.searchRow}>
+        <View style={styles.searchContainer}>
+          <Ionicons name="search" size={18} color="#94A3B8" />
+          <TextInput
+            placeholder={t("search_placeholder")}
+            placeholderTextColor="#94A3B8"
+            style={styles.searchInput}
+            value={search}
+            onChangeText={setSearch}
+            onSubmitEditing={() => fetchEnquiries()}
+            returnKeyType="search"
+            clearButtonMode="while-editing"
+          />
+          {search.length > 0 && (
+            <TouchableOpacity onPress={() => setSearch("")}>
+              <Ionicons name="close-circle" size={18} color="#94A3B8" />
+            </TouchableOpacity>
+          )}
+        </View>
+
+        <TouchableOpacity
+          style={[
+            styles.filterToggleBtn,
+            activeFiltersCount > 0 && styles.filterToggleBtnActive,
+          ]}
+          onPress={openFilterModal}
+          activeOpacity={0.8}
+        >
+          <Ionicons
+            name="options-outline"
+            size={20}
+            color={activeFiltersCount > 0 ? "#FFFFFF" : "#2563EB"}
+          />
+          {activeFiltersCount > 0 && (
+            <View style={styles.filterBadge}>
+              <Text style={styles.filterBadgeText}>{activeFiltersCount}</Text>
+            </View>
+          )}
+        </TouchableOpacity>
       </View>
+
+      {/* Active Filter Chips Strip */}
+      {activeFiltersCount > 0 && (
+        <View style={styles.activeFiltersWrapper}>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.activeFiltersScroll}
+          >
+            {selectedDay !== "ALL" && (
+              <View style={styles.activeChip}>
+                <Ionicons name="calendar-outline" size={13} color="#2563EB" />
+                <Text style={styles.activeChipText}>
+                  {daysList.find((d) => d.key === selectedDay)?.label || selectedDay}
+                </Text>
+                <TouchableOpacity
+                  onPress={() => setSelectedDay("ALL")}
+                  hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                >
+                  <Ionicons name="close-circle" size={15} color="#2563EB" />
+                </TouchableOpacity>
+              </View>
+            )}
+
+            {selectedDoctorId !== "ALL" && (
+              <View style={styles.activeChip}>
+                <Ionicons name="person-outline" size={13} color="#2563EB" />
+                <Text style={styles.activeChipText}>
+                  {doctorList.find((d) => d.id === Number(selectedDoctorId))?.name ||
+                    `${t("filters.doctor")}: #${selectedDoctorId}`}
+                </Text>
+                <TouchableOpacity
+                  onPress={() => setSelectedDoctorId("ALL")}
+                  hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                >
+                  <Ionicons name="close-circle" size={15} color="#2563EB" />
+                </TouchableOpacity>
+              </View>
+            )}
+
+            {selectedSpecialization !== "ALL" && (
+              <View style={styles.activeChip}>
+                <Ionicons name="medical-outline" size={13} color="#2563EB" />
+                <Text style={styles.activeChipText}>
+                  {selectedSpecialization}
+                </Text>
+                <TouchableOpacity
+                  onPress={() => setSelectedSpecialization("ALL")}
+                  hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                >
+                  <Ionicons name="close-circle" size={15} color="#2563EB" />
+                </TouchableOpacity>
+              </View>
+            )}
+
+            <TouchableOpacity
+              style={styles.clearAllChip}
+              onPress={clearAllFilters}
+            >
+              <Text style={styles.clearAllChipText}>
+                {t("filters.clear_all")}
+              </Text>
+            </TouchableOpacity>
+          </ScrollView>
+        </View>
+      )}
 
       {/* Simplified Tabs */}
       <View style={styles.tabsWrapper}>
@@ -508,6 +696,213 @@ export default function EnquiryScreen() {
         />
       )}
 
+      {/* Filter Bottom Sheet Modal */}
+      <Modal
+        visible={filterModalVisible}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setFilterModalVisible(false)}
+      >
+        <Pressable
+          style={styles.modalBackdrop}
+          onPress={() => setFilterModalVisible(false)}
+        >
+          <Pressable
+            style={styles.filterModalSheet}
+            onPress={(e) => e.stopPropagation()}
+          >
+            {/* Modal Header */}
+            <View style={styles.filterModalHeader}>
+              <View style={styles.filterDragHandle} />
+              <View style={styles.filterHeaderRow}>
+                <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+                  <Ionicons name="funnel" size={20} color="#2563EB" />
+                  <Text style={styles.filterModalTitle}>
+                    {t("filters.filter_title")}
+                  </Text>
+                </View>
+
+                <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
+                  <TouchableOpacity onPress={clearModalFilters}>
+                    <Text style={styles.filterResetText}>
+                      {t("filters.clear_all")}
+                    </Text>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    style={styles.filterCloseBtn}
+                    onPress={() => setFilterModalVisible(false)}
+                  >
+                    <Ionicons name="close" size={20} color="#64748B" />
+                  </TouchableOpacity>
+                </View>
+              </View>
+            </View>
+
+            {/* Filter Content Scrollable */}
+            <ScrollView
+              showsVerticalScrollIndicator={false}
+              contentContainerStyle={styles.filterModalScroll}
+            >
+              {/* 1. Day / Date Filter Section */}
+              <View style={styles.filterSection}>
+                <View style={styles.filterSectionHeader}>
+                  <Ionicons name="calendar" size={16} color="#2563EB" />
+                  <Text style={styles.filterSectionTitle}>
+                    {t("filters.day")}
+                  </Text>
+                </View>
+                <View style={styles.chipsContainer}>
+                  {daysList.map((d) => {
+                    const isSelected = tempDay === d.key;
+                    return (
+                      <TouchableOpacity
+                        key={d.key}
+                        style={[
+                          styles.filterChip,
+                          isSelected && styles.filterChipSelected,
+                        ]}
+                        onPress={() => setTempDay(d.key)}
+                        activeOpacity={0.7}
+                      >
+                        <Text
+                          style={[
+                            styles.filterChipText,
+                            isSelected && styles.filterChipTextSelected,
+                          ]}
+                        >
+                          {d.label}
+                        </Text>
+                      </TouchableOpacity>
+                    );
+                  })}
+                </View>
+              </View>
+
+              {/* 2. Doctor Filter Section */}
+              <View style={styles.filterSection}>
+                <View style={styles.filterSectionHeader}>
+                  <Ionicons name="person" size={16} color="#2563EB" />
+                  <Text style={styles.filterSectionTitle}>
+                    {t("filters.doctor")}
+                  </Text>
+                </View>
+                <View style={styles.chipsContainer}>
+                  <TouchableOpacity
+                    style={[
+                      styles.filterChip,
+                      tempDoctorId === "ALL" && styles.filterChipSelected,
+                    ]}
+                    onPress={() => setTempDoctorId("ALL")}
+                    activeOpacity={0.7}
+                  >
+                    <Text
+                      style={[
+                        styles.filterChipText,
+                        tempDoctorId === "ALL" && styles.filterChipTextSelected,
+                      ]}
+                    >
+                      {t("filters.all_doctors")}
+                    </Text>
+                  </TouchableOpacity>
+
+                  {doctorList.map((doc) => {
+                    const isSelected = String(tempDoctorId) === String(doc.id);
+                    return (
+                      <TouchableOpacity
+                        key={doc.id}
+                        style={[
+                          styles.filterChip,
+                          isSelected && styles.filterChipSelected,
+                        ]}
+                        onPress={() => setTempDoctorId(doc.id)}
+                        activeOpacity={0.7}
+                      >
+                        <Text
+                          style={[
+                            styles.filterChipText,
+                            isSelected && styles.filterChipTextSelected,
+                          ]}
+                        >
+                          {doc.name}
+                        </Text>
+                      </TouchableOpacity>
+                    );
+                  })}
+                </View>
+              </View>
+
+              {/* 3. Specialization Filter Section */}
+              <View style={styles.filterSection}>
+                <View style={styles.filterSectionHeader}>
+                  <Ionicons name="medical" size={16} color="#2563EB" />
+                  <Text style={styles.filterSectionTitle}>
+                    {t("filters.specialization")}
+                  </Text>
+                </View>
+                <View style={styles.chipsContainer}>
+                  <TouchableOpacity
+                    style={[
+                      styles.filterChip,
+                      tempSpecialization === "ALL" && styles.filterChipSelected,
+                    ]}
+                    onPress={() => setTempSpecialization("ALL")}
+                    activeOpacity={0.7}
+                  >
+                    <Text
+                      style={[
+                        styles.filterChipText,
+                        tempSpecialization === "ALL" &&
+                          styles.filterChipTextSelected,
+                      ]}
+                    >
+                      {t("filters.all_specializations")}
+                    </Text>
+                  </TouchableOpacity>
+
+                  {specializations.map((spec) => {
+                    const isSelected = tempSpecialization === spec;
+                    return (
+                      <TouchableOpacity
+                        key={spec}
+                        style={[
+                          styles.filterChip,
+                          isSelected && styles.filterChipSelected,
+                        ]}
+                        onPress={() => setTempSpecialization(spec)}
+                        activeOpacity={0.7}
+                      >
+                        <Text
+                          style={[
+                            styles.filterChipText,
+                            isSelected && styles.filterChipTextSelected,
+                          ]}
+                        >
+                          {spec}
+                        </Text>
+                      </TouchableOpacity>
+                    );
+                  })}
+                </View>
+              </View>
+            </ScrollView>
+
+            {/* Modal Bottom Apply Button */}
+            <View style={styles.filterModalFooter}>
+              <TouchableOpacity
+                style={styles.applyFilterBtn}
+                onPress={applyModalFilters}
+                activeOpacity={0.8}
+              >
+                <Text style={styles.applyFilterBtnText}>
+                  {t("filters.apply")}
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </Pressable>
+        </Pressable>
+      </Modal>
+
       {/* Status Feedback Popup */}
       <StatusModal
         visible={modalVisible}
@@ -553,18 +948,95 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
   },
+  searchRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 20,
+    marginTop: 8,
+    marginBottom: 10,
+    gap: 10,
+  },
   searchContainer: {
+    flex: 1,
     flexDirection: "row",
     alignItems: "center",
     backgroundColor: "#FFFFFF",
-    marginHorizontal: 20,
-    marginTop: 8,
-    marginBottom: 10,
     paddingHorizontal: 14,
     height: 46,
     borderRadius: 14,
     borderWidth: 1,
     borderColor: "#E2E8F0",
+  },
+  filterToggleBtn: {
+    width: 46,
+    height: 46,
+    borderRadius: 14,
+    backgroundColor: "#EFF6FF",
+    borderWidth: 1,
+    borderColor: "#BFDBFE",
+    justifyContent: "center",
+    alignItems: "center",
+    position: "relative",
+  },
+  filterToggleBtnActive: {
+    backgroundColor: "#2563EB",
+    borderColor: "#2563EB",
+  },
+  filterBadge: {
+    position: "absolute",
+    top: -4,
+    right: -4,
+    backgroundColor: "#EF4444",
+    borderRadius: 10,
+    minWidth: 18,
+    height: 18,
+    justifyContent: "center",
+    alignItems: "center",
+    paddingHorizontal: 4,
+    borderWidth: 1.5,
+    borderColor: "#FFFFFF",
+  },
+  filterBadgeText: {
+    color: "#FFFFFF",
+    fontSize: 10,
+    fontWeight: "800",
+  },
+  activeFiltersWrapper: {
+    marginBottom: 10,
+  },
+  activeFiltersScroll: {
+    paddingHorizontal: 20,
+    gap: 8,
+    alignItems: "center",
+  },
+  activeChip: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#EFF6FF",
+    borderColor: "#BFDBFE",
+    borderWidth: 1,
+    borderRadius: 14,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    gap: 4,
+  },
+  activeChipText: {
+    fontSize: 12,
+    fontWeight: "600",
+    color: "#1E40AF",
+  },
+  clearAllChip: {
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 14,
+    backgroundColor: "#FEE2E2",
+    borderWidth: 1,
+    borderColor: "#FECACA",
+  },
+  clearAllChipText: {
+    fontSize: 12,
+    fontWeight: "700",
+    color: "#DC2626",
   },
   searchInput: {
     flex: 1,
@@ -816,5 +1288,128 @@ const styles = StyleSheet.create({
     color: "#2563EB",
     fontSize: 14,
     fontWeight: "600",
+  },
+  modalBackdrop: {
+    flex: 1,
+    backgroundColor: "rgba(15, 23, 42, 0.5)",
+    justifyContent: "flex-end",
+  },
+  filterModalSheet: {
+    backgroundColor: "#FFFFFF",
+    borderTopLeftRadius: 28,
+    borderTopRightRadius: 28,
+    maxHeight: "85%",
+    paddingBottom: 24,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: -4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 16,
+    elevation: 20,
+  },
+  filterModalHeader: {
+    paddingTop: 12,
+    paddingHorizontal: 20,
+    paddingBottom: 14,
+    borderBottomWidth: 1,
+    borderBottomColor: "#F1F5F9",
+  },
+  filterDragHandle: {
+    width: 40,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: "#CBD5E1",
+    alignSelf: "center",
+    marginBottom: 12,
+  },
+  filterHeaderRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  filterModalTitle: {
+    fontSize: 18,
+    fontWeight: "800",
+    color: "#0F172A",
+  },
+  filterResetText: {
+    fontSize: 13,
+    fontWeight: "700",
+    color: "#DC2626",
+  },
+  filterCloseBtn: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: "#F1F5F9",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  filterModalScroll: {
+    paddingHorizontal: 20,
+    paddingTop: 16,
+    paddingBottom: 24,
+  },
+  filterSection: {
+    marginBottom: 20,
+  },
+  filterSectionHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    marginBottom: 10,
+  },
+  filterSectionTitle: {
+    fontSize: 14,
+    fontWeight: "700",
+    color: "#1E293B",
+  },
+  chipsContainer: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 8,
+  },
+  filterChip: {
+    paddingHorizontal: 13,
+    paddingVertical: 8,
+    borderRadius: 12,
+    backgroundColor: "#F8FAFC",
+    borderWidth: 1,
+    borderColor: "#E2E8F0",
+  },
+  filterChipSelected: {
+    backgroundColor: "#EFF6FF",
+    borderColor: "#2563EB",
+  },
+  filterChipText: {
+    fontSize: 13,
+    fontWeight: "500",
+    color: "#475569",
+  },
+  filterChipTextSelected: {
+    color: "#2563EB",
+    fontWeight: "700",
+  },
+  filterModalFooter: {
+    paddingHorizontal: 20,
+    paddingTop: 12,
+    borderTopWidth: 1,
+    borderTopColor: "#F1F5F9",
+  },
+  applyFilterBtn: {
+    backgroundColor: "#2563EB",
+    height: 48,
+    borderRadius: 14,
+    justifyContent: "center",
+    alignItems: "center",
+    shadowColor: "#2563EB",
+    shadowOpacity: 0.25,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 4,
+  },
+  applyFilterBtnText: {
+    color: "#FFFFFF",
+    fontSize: 15,
+    fontWeight: "700",
   },
 });

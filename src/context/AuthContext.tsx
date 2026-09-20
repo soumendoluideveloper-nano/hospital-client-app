@@ -82,7 +82,7 @@ const initialize = async () => {
   } finally {
     const elapsed = Date.now() - startTime;
 
-    const remaining = Math.max(0, 1000 - elapsed);
+    const remaining = Math.max(0, 2500 - elapsed);
 
     setTimeout(() => {
       setLoading(false);

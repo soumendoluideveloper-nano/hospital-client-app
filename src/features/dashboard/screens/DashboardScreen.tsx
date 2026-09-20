@@ -231,20 +231,11 @@ export default function DashboardScreen() {
         {/* Header */}
         <View style={styles.header}>
           <View style={styles.headerLeft}>
-            <View style={styles.headerLogoBox}>
-              <Image
-                source={require("../../../../assets/care_spot_icon.png")}
-                style={styles.headerLogo}
-                resizeMode="contain"
-              />
-            </View>
-            <View style={{ flex: 1, marginLeft: 12 }}>
-              <Text style={styles.greeting}>{getGreeting()}</Text>
-              <Text style={styles.clinicName} numberOfLines={1}>
-                {user?.name || "HealthSpot Clinic"}
-              </Text>
-              <Text style={styles.date}>{getFormattedDate()}</Text>
-            </View>
+            <Text style={styles.greeting}>{getGreeting()}</Text>
+            <Text style={styles.clinicName} numberOfLines={1}>
+              {user?.name || "CareSpot Clinic"}
+            </Text>
+            <Text style={styles.date}>{getFormattedDate()}</Text>
           </View>
 
           <TouchableOpacity
@@ -272,7 +263,7 @@ export default function DashboardScreen() {
 
           <View style={styles.welcomeLogoBox}>
             <Image
-              source={require("../../../../assets/care_spot_icon.png")}
+              source={require("../../../../assets/splash-icon.png")}
               style={styles.welcomeLogo}
               resizeMode="contain"
             />
@@ -433,34 +424,10 @@ const styles = StyleSheet.create({
 
   headerLeft: {
     flex: 1,
-    flexDirection: "row",
-    alignItems: "center",
-  },
-
-  headerLogoBox: {
-    width: 48,
-    height: 48,
-    borderRadius: 14,
-    backgroundColor: "#FFFFFF",
-    justifyContent: "center",
-    alignItems: "center",
-    borderWidth: 1.5,
-    borderColor: "#E2E8F0",
-    shadowColor: "#0284C7",
-    shadowOpacity: 0.12,
-    shadowRadius: 6,
-    shadowOffset: { width: 0, height: 2 },
-    elevation: 3,
-    padding: 6,
-  },
-
-  headerLogo: {
-    width: "100%",
-    height: "100%",
   },
 
   greeting: {
-    fontSize: 15,
+    fontSize: 14,
     color: "#64748B",
     fontWeight: "500",
   },
@@ -468,7 +435,7 @@ const styles = StyleSheet.create({
   clinicName: {
     marginTop: 2,
     fontSize: 22,
-    fontWeight: "700",
+    fontWeight: "800",
     color: "#0F172A",
   },
 
@@ -513,15 +480,16 @@ const styles = StyleSheet.create({
   },
 
   welcomeLogoBox: {
-    width: 64,
-    height: 64,
-    borderRadius: 18,
+    width: 108,
+    height: 56,
+    borderRadius: 14,
     backgroundColor: "#FFFFFF",
     justifyContent: "center",
     alignItems: "center",
-    padding: 8,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
     shadowColor: "#000",
-    shadowOpacity: 0.18,
+    shadowOpacity: 0.16,
     shadowRadius: 8,
     shadowOffset: { width: 0, height: 4 },
     elevation: 6,

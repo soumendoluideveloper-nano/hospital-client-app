@@ -135,6 +135,18 @@ export default function DoctorDetailsScreen() {
         style={styles.container}
         edges={["top"]}
       >
+        <View style={styles.navHeader}>
+          <TouchableOpacity
+            style={styles.backBtn}
+            onPress={() => navigation.goBack()}
+            activeOpacity={0.7}
+          >
+            <Ionicons name="arrow-back" size={24} color="#0F172A" />
+          </TouchableOpacity>
+          <Text style={styles.navTitle}>{doctor("doctor_information")}</Text>
+          <View style={{ width: 40 }} />
+        </View>
+
         <View
           style={
             styles.loadingContainer
@@ -169,6 +181,18 @@ export default function DoctorDetailsScreen() {
         style={styles.container}
         edges={["top"]}
       >
+        <View style={styles.navHeader}>
+          <TouchableOpacity
+            style={styles.backBtn}
+            onPress={() => navigation.goBack()}
+            activeOpacity={0.7}
+          >
+            <Ionicons name="arrow-back" size={24} color="#0F172A" />
+          </TouchableOpacity>
+          <Text style={styles.navTitle}>{doctor("doctor_information")}</Text>
+          <View style={{ width: 40 }} />
+        </View>
+
         <View
           style={
             styles.errorContainer
@@ -255,7 +279,7 @@ export default function DoctorDetailsScreen() {
           text: doctor("delete"),
           style: "destructive",
           onPress: async () => {
-            // Delete API পরে এখানে যাবে
+            // Delete API
             console.log(
               "Delete doctor:",
               doctorId
@@ -275,6 +299,24 @@ export default function DoctorDetailsScreen() {
       style={styles.container}
       edges={["top"]}
     >
+      <View style={styles.navHeader}>
+        <TouchableOpacity
+          style={styles.backBtn}
+          onPress={() => navigation.goBack()}
+          activeOpacity={0.7}
+        >
+          <Ionicons name="arrow-back" size={24} color="#0F172A" />
+        </TouchableOpacity>
+        <Text style={styles.navTitle}>{doctor("doctor_information")}</Text>
+        <TouchableOpacity
+          style={styles.backBtn}
+          onPress={() => navigation.navigate("EditDoctor", { doctorId })}
+          activeOpacity={0.7}
+        >
+          <Ionicons name="create-outline" size={22} color="#2563EB" />
+        </TouchableOpacity>
+      </View>
+
       <ScrollView
         showsVerticalScrollIndicator={
           false
@@ -773,6 +815,31 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#F8FAFC",
+  },
+
+  navHeader: {
+    height: 56,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: 16,
+    backgroundColor: "#FFFFFF",
+    borderBottomWidth: 1,
+    borderBottomColor: "#E2E8F0",
+  },
+
+  backBtn: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+
+  navTitle: {
+    fontSize: 18,
+    fontWeight: "700",
+    color: "#0F172A",
   },
 
   content: {

@@ -39,191 +39,221 @@ type NavigationProp =
   NativeStackNavigationProp<RootStackParamList>;
 
 export default function LanguageScreen() {
-
   const navigation =
     useNavigation<NavigationProp>();
 
-  const { i18n } =
-    useTranslation();
+  const { t, i18n } =
+    useTranslation("common");
 
-  const [selectedLanguage,
-    setSelectedLanguage] =
+  const [selectedLanguage, setSelectedLanguage] =
     useState("en");
 
-  const [loading,
-    setLoading] =
+  const [loading, setLoading] =
     useState(false);
 
   useEffect(() => {
     setSelectedLanguage(
       i18n.language || "en"
     );
-  }, []);
+  }, [i18n.language]);
+
   const languages = [
-  {
-    code: "en",
-    flag: "🇮🇳",
-    title: "English",
-    subtitle: "App language will be English",
-  },
-  {
-    code: "bn",
-    flag: "🇮🇳",
-    title: "বাংলা",
-    subtitle: "অ্যাপের ভাষা বাংলা হবে",
-  },
-];
+    {
+      code: "en",
+      flag: "🇮🇳",
+      title: "English",
+      subtitle: i18n.language === "bn" ? "অ্যাপের ভাষা ইংরেজি হবে" : "App language will be English",
+    },
+    {
+      code: "bn",
+      flag: "🇮🇳",
+      title: "বাংলা",
+      subtitle: i18n.language === "bn" ? "অ্যাপের ভাষা বাংলা হবে" : "App language will be Bengali",
+    },
+  ];
 
-const handleSave = async () => {
-  try {
-    setLoading(true);
+  const handleSave = async () => {
+    try {
+      setLoading(true);
 
-    await changeLanguage(
-      selectedLanguage as "en" | "bn"
-    );
+      await changeLanguage(
+        selectedLanguage as "en" | "bn"
+      );
 
-    navigation.goBack();
-  } finally {
-    setLoading(false);
-  }
-};
+      navigation.goBack();
+    } finally {
+      setLoading(false);
+    }
+  };
 
-return (
-  <SafeAreaView
-    style={styles.container}
-    edges={["top"]}
-  >
-    <ScrollView
-      showsVerticalScrollIndicator={false}
-      contentContainerStyle={{
-        paddingBottom: 40,
-      }}
+  return (
+    <SafeAreaView
+      style={styles.container}
+      edges={["top"]}
     >
-      <View style={styles.header}>
-        <View style={styles.iconCircle}>
-          <Ionicons
-            name="language"
-            size={34}
-            color="#2563EB"
-          />
-        </View>
+      {/* Navigation Header */}
+      <View style={styles.navHeader}>
+        <TouchableOpacity
+          style={styles.backBtn}
+          onPress={() => navigation.goBack()}
+          activeOpacity={0.7}
+        >
+          <Ionicons name="arrow-back" size={24} color="#0F172A" />
+        </TouchableOpacity>
 
-        <Text style={styles.title}>
-          Language
+        <Text style={styles.navTitle}>
+          {t("language")}
         </Text>
 
-        <Text style={styles.subtitle}>
-          Choose your preferred language
-        </Text>
+        <View style={{ width: 40 }} />
       </View>
 
-      {languages.map(language => {
-        const selected =
-          selectedLanguage ===
-          language.code;
-
-        return (
-          <TouchableOpacity
-            key={language.code}
-            style={[
-              styles.card,
-              selected &&
-                styles.selectedCard,
-            ]}
-            activeOpacity={0.8}
-            onPress={() =>
-              setSelectedLanguage(
-                language.code
-              )
-            }
-          >
-            <View style={styles.left}>
-              <Text style={styles.flag}>
-                {language.flag}
-              </Text>
-
-              <View>
-                <Text
-                  style={styles.languageName}
-                >
-                  {language.title}
-                </Text>
-
-                <Text
-                  style={
-                    styles.languageDesc
-                  }
-                >
-                  {language.subtitle}
-                </Text>
-              </View>
-            </View>
-
-            <Ionicons
-              name={
-                selected
-                  ? "checkmark-circle"
-                  : "ellipse-outline"
-              }
-              size={28}
-              color={
-                selected
-                  ? "#2563EB"
-                  : "#CBD5E1"
-              }
-            />
-          </TouchableOpacity>
-        );
-      })}
-
-            <TouchableOpacity
-        style={styles.saveButton}
-        onPress={handleSave}
-        disabled={loading}
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{
+          paddingBottom: 40,
+        }}
       >
-        <Ionicons
-          name="checkmark-circle"
-          size={20}
-          color="#FFF"
-        />
+        <View style={styles.header}>
+          <View style={styles.iconCircle}>
+            <Ionicons
+              name="language"
+              size={34}
+              color="#2563EB"
+            />
+          </View>
 
-        <Text
-          style={styles.saveButtonText}
+          <Text style={styles.title}>
+            {t("choose_language")}
+          </Text>
+
+          <Text style={styles.subtitle}>
+            {t("choose_preferred_language")}
+          </Text>
+        </View>
+
+        {languages.map((language) => {
+          const selected =
+            selectedLanguage === language.code;
+
+          return (
+            <TouchableOpacity
+              key={language.code}
+              style={[
+                styles.card,
+                selected && styles.selectedCard,
+              ]}
+              activeOpacity={0.8}
+              onPress={() =>
+                setSelectedLanguage(language.code)
+              }
+            >
+              <View style={styles.left}>
+                <Text style={styles.flag}>
+                  {language.flag}
+                </Text>
+
+                <View>
+                  <Text style={styles.languageName}>
+                    {language.title}
+                  </Text>
+
+                  <Text style={styles.languageDesc}>
+                    {language.subtitle}
+                  </Text>
+                </View>
+              </View>
+
+              <Ionicons
+                name={
+                  selected
+                    ? "checkmark-circle"
+                    : "ellipse-outline"
+                }
+                size={28}
+                color={
+                  selected
+                    ? "#2563EB"
+                    : "#CBD5E1"
+                }
+              />
+            </TouchableOpacity>
+          );
+        })}
+
+        <TouchableOpacity
+          style={styles.saveButton}
+          onPress={handleSave}
+          disabled={loading}
+          activeOpacity={0.85}
         >
-          {loading
-            ? "Saving..."
-            : "Save Language"}
-        </Text>
-      </TouchableOpacity>
-    </ScrollView>
-  </SafeAreaView>
-);
+          <Ionicons
+            name="checkmark-circle"
+            size={20}
+            color="#FFF"
+          />
+
+          <Text style={styles.saveButtonText}>
+            {loading
+              ? t("saving")
+              : t("save_language")}
+          </Text>
+        </TouchableOpacity>
+      </ScrollView>
+    </SafeAreaView>
+  );
 }
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#F8FAFC",
   },
 
+  navHeader: {
+    height: 56,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: 16,
+    backgroundColor: "#FFFFFF",
+    borderBottomWidth: 1,
+    borderBottomColor: "#E2E8F0",
+  },
+
+  backBtn: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+
+  navTitle: {
+    fontSize: 18,
+    fontWeight: "700",
+    color: "#0F172A",
+  },
+
   header: {
     alignItems: "center",
     paddingTop: 25,
     paddingHorizontal: 20,
-    marginBottom: 30,
+    marginBottom: 25,
   },
 
   iconCircle: {
-    width: 90,
-    height: 90,
-    borderRadius: 45,
+    width: 80,
+    height: 80,
+    borderRadius: 40,
     backgroundColor: "#EFF6FF",
     justifyContent: "center",
     alignItems: "center",
-    marginBottom: 18,
+    marginBottom: 16,
   },
 
   title: {
-    fontSize: 28,
+    fontSize: 24,
     fontWeight: "700",
     color: "#0F172A",
   },
@@ -278,7 +308,8 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: "#64748B",
   },
-    saveButton: {
+
+  saveButton: {
     marginHorizontal: 20,
     marginTop: 25,
     height: 56,

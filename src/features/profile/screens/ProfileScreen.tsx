@@ -17,6 +17,7 @@ import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 
 import { Ionicons } from "@expo/vector-icons";
+import { useTranslation } from "react-i18next";
 
 import useAuth from "../../../hooks/useAuth";
 
@@ -95,6 +96,7 @@ const getInitials = (name?: string) => {
 };
 
 export default function ProfileScreen() {
+  const { t } = useTranslation("common");
   const {
     user,
     logout,
@@ -195,15 +197,15 @@ export default function ProfileScreen() {
 
   const handleLogout = () => {
     Alert.alert(
-      "Logout",
-      "Are you sure you want to logout?",
+      t("logout"),
+      t("logout_confirm"),
       [
         {
-          text: "Cancel",
+          text: t("cancel"),
           style: "cancel",
         },
         {
-          text: "Logout",
+          text: t("logout"),
           style: "destructive",
           onPress: async () => {
             await logout();
@@ -228,7 +230,7 @@ export default function ProfileScreen() {
 
         <View style={styles.header}>
           <Text style={styles.title}>
-            Profile
+            {t("profile")}
           </Text>
         </View>
 
@@ -311,7 +313,7 @@ export default function ProfileScreen() {
             />
 
             <Text style={styles.editText}>
-              Edit Profile
+              {t("edit_profile")}
             </Text>
           </TouchableOpacity>
         </View>
@@ -320,7 +322,7 @@ export default function ProfileScreen() {
 
         <View style={styles.infoCard}>
           <Text style={styles.cardTitle}>
-            Contact Information
+            {t("contact_info")}
           </Text>
 
           {/* Mobile */}
@@ -336,12 +338,12 @@ export default function ProfileScreen() {
 
             <View style={styles.infoContent}>
               <Text style={styles.label}>
-                Mobile
+                {t("mobile_number")}
               </Text>
 
               <Text style={styles.value}>
                 {user?.phone ||
-                  "Not available"}
+                  t("not_available")}
               </Text>
             </View>
           </View>
@@ -361,12 +363,12 @@ export default function ProfileScreen() {
 
             <View style={styles.infoContent}>
               <Text style={styles.label}>
-                Email
+                {t("email")}
               </Text>
 
               <Text style={styles.value}>
                 {user?.email ||
-                  "Not available"}
+                  t("not_available")}
               </Text>
             </View>
           </View>
@@ -386,13 +388,13 @@ export default function ProfileScreen() {
 
             <View style={styles.infoContent}>
               <Text style={styles.label}>
-                Address
+                {t("address")}
               </Text>
 
               <Text style={styles.value}>
                 {[user?.address, user?.city, user?.state, user?.pincode]
                   .filter(Boolean)
-                  .join(", ") || "Not available"}
+                  .join(", ") || t("not_available")}
               </Text>
             </View>
           </View>
@@ -412,13 +414,13 @@ export default function ProfileScreen() {
 
             <View style={styles.infoContent}>
               <Text style={styles.label}>
-                GPS Coordinates (For Patient App Distance)
+                {t("gps_coordinates")}
               </Text>
 
               <Text style={[styles.value, { color: user?.latitude && user?.longitude ? "#16A34A" : "#D97706" }]}>
                 {user?.latitude && user?.longitude
                   ? `${Number(user.latitude).toFixed(4)}° N, ${Number(user.longitude).toFixed(4)}° E`
-                  : "Not configured (Tap Edit Profile to set)"}
+                  : t("gps_not_configured")}
               </Text>
             </View>
           </View>
@@ -428,12 +430,12 @@ export default function ProfileScreen() {
 
         <View style={styles.menuCard}>
           <Text style={styles.cardTitle}>
-            Account Settings
+            {t("account_settings")}
           </Text>
 
           <MenuItem
             icon="person-outline"
-            title="Edit Profile"
+            title={t("edit_profile")}
             onPress={() =>
               navigation.navigate(
                 "EditProfile"
@@ -443,7 +445,7 @@ export default function ProfileScreen() {
 
           <MenuItem
             icon="lock-closed-outline"
-            title="Change Password"
+            title={t("change_password")}
             onPress={() =>
               navigation.navigate(
                 "ChangePassword"
@@ -453,7 +455,7 @@ export default function ProfileScreen() {
 
           <MenuItem
             icon="language-outline"
-            title="Language"
+            title={t("language")}
             onPress={() =>
               navigation.navigate(
                 "Language"
@@ -476,7 +478,7 @@ export default function ProfileScreen() {
           />
 
           <Text style={styles.logoutText}>
-            Logout
+            {t("logout")}
           </Text>
         </TouchableOpacity>
 

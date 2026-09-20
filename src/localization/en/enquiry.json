@@ -51,5 +51,30 @@
     "cancel_success": "Patient enquiry has been cancelled.",
     "error": "Something went wrong. Please try again.",
     "phone_not_available": "Patient phone number is not available."
+  },
+  "filters": {
+    "filter": "Filter",
+    "filter_title": "Filter Enquiries",
+    "clear_all": "Clear All",
+    "apply": "Apply",
+    "active_filters": "Active Filters",
+    "day": "Day / Date",
+    "all_days": "All Days",
+    "today": "Today",
+    "tomorrow": "Tomorrow",
+    "monday": "Monday",
+    "tuesday": "Tuesday",
+    "wednesday": "Wednesday",
+    "thursday": "Thursday",
+    "friday": "Friday",
+    "saturday": "Saturday",
+    "sunday": "Sunday",
+    "doctor": "Doctor",
+    "all_doctors": "All Doctors",
+    "select_doctor": "Select Doctor",
+    "specialization": "Specialization",
+    "all_specializations": "All Specializations",
+    "select_specialization": "Select Specialization",
+    "showing_results": "Showing filtered results"
   }
 }

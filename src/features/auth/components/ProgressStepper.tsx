@@ -13,12 +13,12 @@ type Props = {
   step: number;
 };
 
-const steps = [
-  "Mobile",
-  "Clinic",
-  "Address",
-  "Security",
-];
+const stepKeys = [
+  "step_mobile_tab",
+  "step_clinic_tab",
+  "step_address_tab",
+  "step_security_tab",
+] as const;
 
 export default function ProgressStepper({
   step,
@@ -51,7 +51,7 @@ export default function ProgressStepper({
       {/* Stepper */}
 
       <View style={styles.progressContainer}>
-        {steps.map((item, index) => {
+        {stepKeys.map((item, index) => {
           const active =
             step >= index + 1;
 
@@ -90,7 +90,7 @@ export default function ProgressStepper({
                     styles.activeLabel,
                 ]}
               >
-                {item}
+                {signup(item)}
               </Text>
             </View>
           );

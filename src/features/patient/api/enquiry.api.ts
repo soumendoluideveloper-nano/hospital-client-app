@@ -34,14 +34,20 @@ export interface SingleEnquiryApiResponse {
 
 export const getEnquiriesApi = async (params?: {
   status?: string;
-  doctor_id?: number;
+  doctor_id?: number | string;
+  specialization?: string;
+  day?: string;
+  date?: string;
   search?: string;
   page?: number;
   limit?: number;
 }): Promise<EnquiryListResponse> => {
   const queryParams = new URLSearchParams();
   if (params?.status && params.status !== "ALL") queryParams.append("status", params.status);
-  if (params?.doctor_id) queryParams.append("doctor_id", String(params.doctor_id));
+  if (params?.doctor_id && params.doctor_id !== "ALL") queryParams.append("doctor_id", String(params.doctor_id));
+  if (params?.specialization && params.specialization !== "ALL") queryParams.append("specialization", params.specialization);
+  if (params?.day && params.day !== "ALL") queryParams.append("day", params.day);
+  if (params?.date) queryParams.append("date", params.date);
   if (params?.search) queryParams.append("search", params.search);
   if (params?.page) queryParams.append("page", String(params.page));
   if (params?.limit) queryParams.append("limit", String(params.limit));

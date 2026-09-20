@@ -23,6 +23,7 @@ import {
   isLanguageSelected,
 } from "../../../localization/i18n";
 import LanguageModal from "../../../components/ui/LanguageModal";
+import CareSpotBrand from "../../../components/ui/CareSpotBrand";
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
 export default function LoginScreen() {
@@ -128,7 +129,7 @@ export default function LoginScreen() {
               />
             </View>
 
-            <Text style={styles.title}>Care Spot</Text>
+            <CareSpotBrand fontSize={28} style={{ marginTop: 12 }} />
 
             <View style={styles.partnerBadge}>
               <Text style={styles.partnerBadgeText}>CLINIC PARTNER</Text>
@@ -280,15 +281,6 @@ const styles = StyleSheet.create({
   logoIconImage: {
     width: "100%",
     height: "100%",
-  },
-
-  title: {
-    fontSize: 26,
-    fontWeight: "800",
-    color: "#0F172A",
-    textAlign: "center",
-    marginTop: 10,
-    letterSpacing: 0.5,
   },
 
   partnerBadge: {

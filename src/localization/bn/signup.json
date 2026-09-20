@@ -2,6 +2,10 @@
   "signup_title": "ক্লিনিক অ্যাকাউন্ট তৈরি করুন",
   "signup_subtitle": "Clinic Partner-এর সাথে যুক্ত হয়ে সহজে আপনার ক্লিনিক পরিচালনা করুন।",
 
+  "step_mobile_tab": "মোবাইল",
+  "step_clinic_tab": "ক্লিনিক",
+  "step_address_tab": "ঠিকানা",
+  "step_security_tab": "নিরাপত্তা",
   "step_mobile": "মোবাইল",
   "step_clinic": "ক্লিনিক",
   "step_address": "ঠিকানা",

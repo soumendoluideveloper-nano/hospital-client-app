@@ -2,6 +2,10 @@
   "signup_title": "Create Clinic Account",
   "signup_subtitle": "Join Clinic Partner and manage your clinic with ease.",
 
+  "step_mobile_tab": "Mobile",
+  "step_clinic_tab": "Clinic",
+  "step_address_tab": "Address",
+  "step_security_tab": "Security",
   "step_mobile": "Verify Mobile Number",
   "step_mobile_subtitle": "Enter your mobile number to receive an OTP.",
 

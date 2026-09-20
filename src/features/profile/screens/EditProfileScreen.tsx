@@ -19,6 +19,8 @@ import {
 import * as Location from "expo-location";
 import { Ionicons } from "@expo/vector-icons";
 
+import { useNavigation } from "@react-navigation/native";
+import { useTranslation } from "react-i18next";
 import useAuth from "../../../hooks/useAuth";
 import { updateProfileApi } from "../api/profile.api";
 import { FILE_BASE_URL } from "../../../config/env";
@@ -32,6 +34,8 @@ import MapLocationPicker, {
 } from "../../../components/ui/MapLocationPicker";
 
 export default function EditProfileScreen() {
+  const navigation = useNavigation();
+  const { t } = useTranslation("common");
   const { user, updateUser } = useAuth();
 
   // =====================================================
@@ -515,15 +519,16 @@ export default function EditProfileScreen() {
       setStatusModal({
         visible: true,
         type: "success",
-        title: "Profile Updated",
-        message: response?.message || "Clinic profile & location updated successfully!",
+        title: t("success"),
+        message: response?.message || t("profile_updated"),
+        onConfirm: () => navigation.goBack(),
       });
     } catch (error: any) {
       console.log("Update profile error:", error);
       setStatusModal({
         visible: true,
         type: "error",
-        title: "Error",
+        title: t("error"),
         message: error?.message || "Failed to update profile.",
       });
     } finally {
@@ -533,6 +538,19 @@ export default function EditProfileScreen() {
 
   return (
     <SafeAreaView style={styles.container} edges={["top"]}>
+      {/* Navigation Header */}
+      <View style={styles.navHeader}>
+        <TouchableOpacity
+          style={styles.backBtn}
+          onPress={() => navigation.goBack()}
+          activeOpacity={0.7}
+        >
+          <Ionicons name="arrow-back" size={24} color="#0F172A" />
+        </TouchableOpacity>
+        <Text style={styles.navTitle}>{t("edit_profile_title")}</Text>
+        <View style={{ width: 40 }} />
+      </View>
+
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: 40 }}
@@ -984,6 +1002,28 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#F8FAFC",
+  },
+  navHeader: {
+    height: 56,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: 16,
+    backgroundColor: "#FFFFFF",
+    borderBottomWidth: 1,
+    borderBottomColor: "#E2E8F0",
+  },
+  backBtn: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  navTitle: {
+    fontSize: 18,
+    fontWeight: "700",
+    color: "#0F172A",
   },
   profileHeader: {
     backgroundColor: "#FFFFFF",

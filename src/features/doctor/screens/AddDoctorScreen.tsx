@@ -82,12 +82,15 @@ export default function AddDoctorScreen() {
   const [aboutDoctorError, setAboutDoctorError] =
     useState("");
 const [statusModal, setStatusModal] =
-  useState({
+  useState<{
+    visible: boolean;
+    type: "success" | "error" | "warning";
+    title: string;
+    message: string;
+    onConfirm?: () => void;
+  }>({
     visible: false,
-    type: "success" as
-      | "success"
-      | "error"
-      | "warning",
+    type: "success",
     title: "",
     message: "",
   });
@@ -285,6 +288,7 @@ const handleSaveDoctor = async () => {
         message: doctor(
           "doctor_added_successfully"
         ),
+        onConfirm: () => navigation.goBack(),
       });
 
     }
@@ -297,9 +301,6 @@ const handleSaveDoctor = async () => {
       });
     }
     setLoading(false);
-
-    // success
-    // navigation.goBack();
 
   } catch (error: any) {
     console.log(
@@ -325,6 +326,23 @@ const handleSaveDoctor = async () => {
       style={styles.container}
       edges={["top"]}
     >
+      {/* Navigation Header */}
+      <View style={styles.navHeader}>
+        <TouchableOpacity
+          style={styles.backBtn}
+          onPress={() => navigation.goBack()}
+          activeOpacity={0.7}
+        >
+          <Ionicons name="arrow-back" size={24} color="#0F172A" />
+        </TouchableOpacity>
+
+        <Text style={styles.navTitle}>
+          {doctor("add_doctor")}
+        </Text>
+
+        <View style={{ width: 40 }} />
+      </View>
+
       <ScrollView
         contentContainerStyle={
           styles.content
@@ -332,13 +350,6 @@ const handleSaveDoctor = async () => {
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
       >
-
-        {/* Header */}
-
-        <Text style={styles.heading}>
-          {doctor("add_doctor")}
-        </Text>
-
         <Text style={styles.subHeading}>
           {doctor("add_doctor_subtitle")}
         </Text>
@@ -836,6 +847,31 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#F8FAFC",
+  },
+
+  navHeader: {
+    height: 56,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: 16,
+    backgroundColor: "#FFFFFF",
+    borderBottomWidth: 1,
+    borderBottomColor: "#E2E8F0",
+  },
+
+  backBtn: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+
+  navTitle: {
+    fontSize: 18,
+    fontWeight: "700",
+    color: "#0F172A",
   },
 
   content: {

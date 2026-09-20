@@ -417,6 +417,18 @@ export default function EditDoctorScreen() {
         style={styles.container}
         edges={["top"]}
       >
+        <View style={styles.navHeader}>
+          <TouchableOpacity
+            style={styles.backBtn}
+            onPress={() => navigation.goBack()}
+            activeOpacity={0.7}
+          >
+            <Ionicons name="arrow-back" size={24} color="#0F172A" />
+          </TouchableOpacity>
+          <Text style={styles.navTitle}>{doctor("edit_doctor")}</Text>
+          <View style={{ width: 40 }} />
+        </View>
+
         <View
           style={
             styles.loadingContainer
@@ -450,6 +462,18 @@ export default function EditDoctorScreen() {
       style={styles.container}
       edges={["top"]}
     >
+      <View style={styles.navHeader}>
+        <TouchableOpacity
+          style={styles.backBtn}
+          onPress={() => navigation.goBack()}
+          activeOpacity={0.7}
+        >
+          <Ionicons name="arrow-back" size={24} color="#0F172A" />
+        </TouchableOpacity>
+        <Text style={styles.navTitle}>{doctor("edit_doctor")}</Text>
+        <View style={{ width: 40 }} />
+      </View>
+
       <KeyboardAvoidingView
         style={{ flex: 1 }}
         behavior={
@@ -467,29 +491,15 @@ export default function EditDoctorScreen() {
           }
           keyboardShouldPersistTaps="handled"
         >
-          {/* Header */}
-
-          <View
-            style={styles.header}
+          <Text
+            style={
+              styles.subHeading
+            }
           >
-            <Text
-              style={styles.heading}
-            >
-              {doctor(
-                "edit_doctor"
-              )}
-            </Text>
-
-            <Text
-              style={
-                styles.subHeading
-              }
-            >
-              {doctor(
-                "update_doctor_information"
-              )}
-            </Text>
-          </View>
+            {doctor(
+              "update_doctor_information"
+            )}
+          </Text>
 
           {/* Form */}
 
@@ -908,6 +918,31 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#F8FAFC",
+  },
+
+  navHeader: {
+    height: 56,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: 16,
+    backgroundColor: "#FFFFFF",
+    borderBottomWidth: 1,
+    borderBottomColor: "#E2E8F0",
+  },
+
+  backBtn: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+
+  navTitle: {
+    fontSize: 18,
+    fontWeight: "700",
+    color: "#0F172A",
   },
 
   content: {

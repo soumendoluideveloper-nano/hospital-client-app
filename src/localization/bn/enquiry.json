@@ -51,5 +51,30 @@
     "cancel_success": "রিকোয়েস্টটি ক্যানসেল করা হয়েছে।",
     "error": "কিছু সমস্যা হয়েছে। দয়া করে আবার চেষ্টা করুন।",
     "phone_not_available": "রোগীর ফোন নম্বর পাওয়া যায়নি।"
+  },
+  "filters": {
+    "filter": "ফিল্টার",
+    "filter_title": "অনুসন্ধান ফিল্টার করুন",
+    "clear_all": "সব মুছুন",
+    "apply": "প্রয়োগ করুন",
+    "active_filters": "সক্রিয় ফিল্টার",
+    "day": "দিন / তারিখ",
+    "all_days": "সব দিন",
+    "today": "আজ",
+    "tomorrow": "আগামীকাল",
+    "monday": "সোমবার",
+    "tuesday": "মঙ্গলবার",
+    "wednesday": "বুধবার",
+    "thursday": "বৃহস্পতিবার",
+    "friday": "শুক্রবার",
+    "saturday": "শনিবার",
+    "sunday": "রবিবার",
+    "doctor": "ডাক্তার",
+    "all_doctors": "সকল ডাক্তার",
+    "select_doctor": "ডাক্তার নির্বাচন করুন",
+    "specialization": "বিশেষজ্ঞতা / বিভাগ",
+    "all_specializations": "সকল বিভাগ",
+    "select_specialization": "বিভাগ নির্বাচন করুন",
+    "showing_results": "ফিল্টার করা ফলাফল দেখানো হচ্ছে"
   }
 }

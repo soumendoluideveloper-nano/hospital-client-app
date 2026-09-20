@@ -316,8 +316,27 @@ const handleContinueLogin =
   handleSubmit,
 ]);
 return (
-  
-  <SafeAreaView style={styles.container}>
+  <SafeAreaView style={styles.container} edges={["top"]}>
+    <View style={styles.topBar}>
+      <TouchableOpacity
+        style={styles.backBtn}
+        onPress={() => {
+          if (step > 1) {
+            changeStep(-1);
+          } else {
+            navigation.goBack();
+          }
+        }}
+        activeOpacity={0.7}
+      >
+        <Ionicons name="arrow-back" size={24} color="#0F172A" />
+      </TouchableOpacity>
+      <Text style={styles.topBarTitle}>
+        {signup("signup_title")}
+      </Text>
+      <View style={{ width: 40 }} />
+    </View>
+
     <TouchableWithoutFeedback
       onPress={Keyboard.dismiss}
     >
@@ -443,6 +462,31 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#F8FAFC",
+  },
+
+  topBar: {
+    height: 52,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: 16,
+    backgroundColor: "#FFFFFF",
+    borderBottomWidth: 1,
+    borderBottomColor: "#E2E8F0",
+  },
+
+  backBtn: {
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+
+  topBarTitle: {
+    fontSize: 17,
+    fontWeight: "700",
+    color: "#0F172A",
   },
 
   wrapper: {
