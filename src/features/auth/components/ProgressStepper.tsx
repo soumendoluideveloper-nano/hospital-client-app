@@ -20,7 +20,7 @@ const stepKeys = [
   "step_security_tab",
 ] as const;
 
-export default function ProgressStepper({
+function ProgressStepper({
   step,
 }: Props) {
   const { t: signup } =
@@ -173,3 +173,5 @@ const styles = StyleSheet.create({
     fontWeight: "700",
   },
 });
+
+export default React.memo(ProgressStepper);

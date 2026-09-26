@@ -10,33 +10,46 @@ import { Ionicons } from "@expo/vector-icons";
 import { useTranslation } from "react-i18next";
 
 type Props = {
-  address: string;
-  setAddress: (value: string) => void;
+  initialAddress?: string;
+  initialCity?: string;
+  initialStateName?: string;
+  initialPincode?: string;
 
-  city: string;
-  setCity: (value: string) => void;
-
-  stateName: string;
-  setStateName: (value: string) => void;
-
-  pincode: string;
-  setPincode: (value: string) => void;
+  address?: string;
+  setAddress?: (value: string) => void;
+  city?: string;
+  setCity?: (value: string) => void;
+  stateName?: string;
+  setStateName?: (value: string) => void;
+  pincode?: string;
+  setPincode?: (value: string) => void;
 
   previousStep: () => void;
-  nextStep: () => void;
+  nextStep?: () => void;
+  onNext?: (data: {
+    address: string;
+    city: string;
+    stateName: string;
+    pincode: string;
+  }) => void;
 };
 
 function StepThree({
-  address,
-  setAddress,
-  city,
-  setCity,
-  stateName,
-  setStateName,
-  pincode,
-  setPincode,
+  initialAddress,
+  initialCity,
+  initialStateName,
+  initialPincode,
+  address: propAddress,
+  setAddress: propSetAddress,
+  city: propCity,
+  setCity: propSetCity,
+  stateName: propStateName,
+  setStateName: propSetStateName,
+  pincode: propPincode,
+  setPincode: propSetPincode,
   previousStep,
   nextStep,
+  onNext,
 }: Props) {
 
   const { t: common } =
@@ -44,6 +57,19 @@ function StepThree({
 
   const { t: signup } =
     useTranslation("signup");
+
+  const [address, setAddress] = useState(
+    propAddress !== undefined ? propAddress : (initialAddress || "")
+  );
+  const [city, setCity] = useState(
+    propCity !== undefined ? propCity : (initialCity || "")
+  );
+  const [stateName, setStateName] = useState(
+    propStateName !== undefined ? propStateName : (initialStateName || "")
+  );
+  const [pincode, setPincode] = useState(
+    propPincode !== undefined ? propPincode : (initialPincode || "")
+  );
 
   const [addressError, setAddressError] =
     useState("");
@@ -92,7 +118,7 @@ function StepThree({
         signup("pincode_required")
       );
       valid = false;
-    } else if (pincode.length !== 6) {
+    } else if (pincode.trim().length !== 6) {
       setPincodeError(
         signup("invalid_pincode")
       );
@@ -101,7 +127,20 @@ function StepThree({
 
     if (!valid) return;
 
-    nextStep();
+    if (onNext) {
+      onNext({
+        address: address.trim(),
+        city: city.trim(),
+        stateName: stateName.trim(),
+        pincode: pincode.trim(),
+      });
+    } else if (nextStep) {
+      propSetAddress?.(address.trim());
+      propSetCity?.(city.trim());
+      propSetStateName?.(stateName.trim());
+      propSetPincode?.(pincode.trim());
+      nextStep();
+    }
   };
 
   return (

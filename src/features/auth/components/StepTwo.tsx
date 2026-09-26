@@ -10,34 +10,55 @@ import { Ionicons } from "@expo/vector-icons";
 import { useTranslation } from "react-i18next";
 
 type Props = {
-  clinicName: string;
-  setClinicName: (value: string) => void;
+  initialClinicName?: string;
+  initialOwnerName?: string;
+  initialReferralCode?: string;
 
-  ownerName: string;
-  setOwnerName: (value: string) => void;
-
-  referralCode: string;
-  setReferralCode: (value: string) => void;
+  clinicName?: string;
+  setClinicName?: (value: string) => void;
+  ownerName?: string;
+  setOwnerName?: (value: string) => void;
+  referralCode?: string;
+  setReferralCode?: (value: string) => void;
 
   previousStep: () => void;
-  nextStep: () => void;
+  nextStep?: () => void;
+  onNext?: (data: {
+    clinicName: string;
+    ownerName: string;
+    referralCode: string;
+  }) => void;
 };
 
 function StepTwo({
-  clinicName,
-  setClinicName,
-  ownerName,
-  setOwnerName,
-  referralCode,
-  setReferralCode,
+  initialClinicName,
+  initialOwnerName,
+  initialReferralCode,
+  clinicName: propClinicName,
+  setClinicName: propSetClinicName,
+  ownerName: propOwnerName,
+  setOwnerName: propSetOwnerName,
+  referralCode: propReferralCode,
+  setReferralCode: propSetReferralCode,
   previousStep,
   nextStep,
+  onNext,
 }: Props) {
   const { t: signup } =
     useTranslation("signup");
 
   const { t: common } =
     useTranslation("common");
+
+  const [clinicName, setClinicName] = useState(
+    propClinicName !== undefined ? propClinicName : (initialClinicName || "")
+  );
+  const [ownerName, setOwnerName] = useState(
+    propOwnerName !== undefined ? propOwnerName : (initialOwnerName || "")
+  );
+  const [referralCode, setReferralCode] = useState(
+    propReferralCode !== undefined ? propReferralCode : (initialReferralCode || "")
+  );
 
   const [
     clinicError,
@@ -71,7 +92,18 @@ function StepTwo({
 
     if (!valid) return;
 
-    nextStep();
+    if (onNext) {
+      onNext({
+        clinicName: clinicName.trim(),
+        ownerName: ownerName.trim(),
+        referralCode: referralCode.trim(),
+      });
+    } else if (nextStep) {
+      propSetClinicName?.(clinicName.trim());
+      propSetOwnerName?.(ownerName.trim());
+      propSetReferralCode?.(referralCode.trim());
+      nextStep();
+    }
   };
 
   return (

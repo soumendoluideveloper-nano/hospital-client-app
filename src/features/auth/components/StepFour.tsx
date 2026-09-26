@@ -12,41 +12,43 @@ import { Ionicons } from "@expo/vector-icons";
 import { useTranslation } from "react-i18next";
 
 type Props = {
-  email: string;
-  setEmail: (value: string) => void;
+  initialEmail?: string;
+  initialPassword?: string;
+  initialConfirmPassword?: string;
 
-  password: string;
-  setPassword: (value: string) => void;
-
-  confirmPassword: string;
-  setConfirmPassword: (value: string) => void;
-
-  showPassword: boolean;
-  setShowPassword: (value: boolean) => void;
-
-  showConfirmPassword: boolean;
-  setShowConfirmPassword: (value: boolean) => void;
+  email?: string;
+  setEmail?: (value: string) => void;
+  password?: string;
+  setPassword?: (value: string) => void;
+  confirmPassword?: string;
+  setConfirmPassword?: (value: string) => void;
+  showPassword?: boolean;
+  setShowPassword?: (value: boolean) => void;
+  showConfirmPassword?: boolean;
+  setShowConfirmPassword?: (value: boolean) => void;
 
   previousStep: () => void;
-  onSubmit: () => void;
+  onSubmit: ((data: { email: string; password: string }) => void) | (() => void);
   loading: boolean;
 };
 
 function StepFour({
-  email,
-  setEmail,
-  password,
-  setPassword,
-  confirmPassword,
-  setConfirmPassword,
-  showPassword,
-  setShowPassword,
-  showConfirmPassword,
-  setShowConfirmPassword,
+  initialEmail,
+  initialPassword,
+  initialConfirmPassword,
+  email: propEmail,
+  setEmail: propSetEmail,
+  password: propPassword,
+  setPassword: propSetPassword,
+  confirmPassword: propConfirmPassword,
+  setConfirmPassword: propSetConfirmPassword,
+  showPassword: propShowPassword,
+  setShowPassword: propSetShowPassword,
+  showConfirmPassword: propShowConfirmPassword,
+  setShowConfirmPassword: propSetShowConfirmPassword,
   previousStep,
   onSubmit,
   loading,
-  
 }: Props) {
 
   const { t: common } =
@@ -54,6 +56,22 @@ function StepFour({
 
   const { t: signup } =
     useTranslation("signup");
+
+  const [email, setEmail] = useState(
+    propEmail !== undefined ? propEmail : (initialEmail || "")
+  );
+  const [password, setPassword] = useState(
+    propPassword !== undefined ? propPassword : (initialPassword || "")
+  );
+  const [confirmPassword, setConfirmPassword] = useState(
+    propConfirmPassword !== undefined ? propConfirmPassword : (initialConfirmPassword || "")
+  );
+  const [showPassword, setShowPassword] = useState(
+    propShowPassword !== undefined ? propShowPassword : false
+  );
+  const [showConfirmPassword, setShowConfirmPassword] = useState(
+    propShowConfirmPassword !== undefined ? propShowConfirmPassword : false
+  );
 
   const [emailError, setEmailError] =
     useState("");
@@ -79,19 +97,20 @@ function StepFour({
     const emailRegex =
       /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-    if (!email.trim()) {
+    const cleanEmail = email.trim();
+    if (!cleanEmail) {
       setEmailError(
         signup("email_required")
       );
       valid = false;
-    } else if (!emailRegex.test(email)) {
+    } else if (!emailRegex.test(cleanEmail)) {
       setEmailError(
         signup("invalid_email")
       );
       valid = false;
     }
 
-    if (!password.trim()) {
+    if (!password) {
       setPasswordError(
         signup("password_required")
       );
@@ -103,7 +122,7 @@ function StepFour({
       valid = false;
     }
 
-    if (!confirmPassword.trim()) {
+    if (!confirmPassword) {
       setConfirmPasswordError(
         signup("confirm_password_required")
       );
@@ -117,7 +136,15 @@ function StepFour({
 
     if (!valid) return;
 
-    onSubmit();
+    propSetEmail?.(cleanEmail);
+    propSetPassword?.(password);
+    propSetConfirmPassword?.(confirmPassword);
+
+    // Call onSubmit passing data (or no-arg for old signature)
+    (onSubmit as any)({
+      email: cleanEmail,
+      password,
+    });
   };
 
   return (

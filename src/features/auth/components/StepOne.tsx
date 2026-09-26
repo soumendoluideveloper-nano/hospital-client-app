@@ -319,16 +319,20 @@ const resendOtp = useCallback(
   );
 
   useEffect(() => {
-  if (countdown <= 0) {
-    return;
-  }
+    if (countdown <= 0) return;
 
-  const timer = setInterval(() => {
-    setCountdown((prev) => prev - 1);
-  }, 1000);
+    const timer = setInterval(() => {
+      setCountdown((prev) => {
+        if (prev <= 1) {
+          clearInterval(timer);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
 
-  return () => clearInterval(timer);
-}, [countdown]);
+    return () => clearInterval(timer);
+  }, [countdown > 0]);
   /* =========================
      MOBILE CHANGE
   ========================= */
