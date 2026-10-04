@@ -35,7 +35,9 @@ import {
 import {
   Doctor,
   listDoctorsApi,
+  deleteDoctorApi,
 } from "../api/doctor.api";
+import StatusModal from "../../../components/ui/StatusModal";
 
 export default function DoctorListScreen() {
   const { t: doctor } =
@@ -79,6 +81,23 @@ export default function DoctorListScreen() {
 
   const [hasMore, setHasMore] =
     useState(true);
+
+  const [statusModal, setStatusModal] = useState<{
+    visible: boolean;
+    type: "success" | "error" | "warning";
+    title: string;
+    message: string;
+    showCancel?: boolean;
+    buttonText?: string;
+    cancelText?: string;
+    confirmButtonColor?: string;
+    onConfirm?: () => void;
+  }>({
+    visible: false,
+    type: "success",
+    title: "",
+    message: "",
+  });
 
   // =====================================================
   // Load Doctors
@@ -150,7 +169,7 @@ export default function DoctorListScreen() {
 
         setHasMore(
           pageNumber <
-            (meta?.total_pages || 1)
+          (meta?.total_pages || 1)
         );
       } catch (err: any) {
         console.log(
@@ -160,9 +179,9 @@ export default function DoctorListScreen() {
 
         setError(
           err?.message ||
-            doctor(
-              "load_doctors_failed"
-            )
+          doctor(
+            "load_doctors_failed"
+          )
         );
       } finally {
         setLoading(false);
@@ -310,6 +329,47 @@ export default function DoctorListScreen() {
     );
   };
 
+  const handleDeleteDoctor = (item: Doctor) => {
+    const docName = item?.name ? `Dr. ${item.name.replace(/^Dr\.\s*/i, "")}` : "this doctor";
+    setStatusModal({
+      visible: true,
+      type: "warning",
+      title: doctor("delete_doctor_title") || "Delete Doctor",
+      message: doctor("delete_doctor_confirmation") || `Are you sure you want to delete ${docName}? This will remove the doctor from your clinic.`,
+      showCancel: true,
+      buttonText: doctor("delete") || "Delete",
+      cancelText: doctor("cancel") || "Cancel",
+      confirmButtonColor: "#DC2626",
+      onConfirm: async () => {
+        try {
+          const res = await deleteDoctorApi(item.id);
+          if (res.status === 1 || res.status === 200 || (res as any).success) {
+            setDoctors((prev) => prev.filter((d) => d.id !== item.id));
+            setStatusModal({
+              visible: true,
+              type: "success",
+              title: doctor("delete_success_title") || "Doctor Deleted",
+              message: doctor("delete_success_message") || "The doctor has been removed successfully from your clinic.",
+              showCancel: false,
+              buttonText: doctor("ok") || "OK",
+            });
+          } else {
+            throw new Error(res.message || doctor("delete_failed") || "Failed to delete doctor");
+          }
+        } catch (err: any) {
+          setStatusModal({
+            visible: true,
+            type: "error",
+            title: doctor("error") || "Error",
+            message: err?.message || doctor("delete_failed") || "Failed to delete doctor. Please try again.",
+            showCancel: false,
+            buttonText: doctor("ok") || "OK",
+          });
+        }
+      },
+    });
+  };
+
   // =====================================================
   // Doctor Item
   // =====================================================
@@ -320,130 +380,155 @@ export default function DoctorListScreen() {
     item: Doctor;
   }) => {
     return (
-      <TouchableOpacity
-        style={styles.card}
-        activeOpacity={0.85}
-        onPress={() =>
-          navigation.navigate(
-            "DoctorDetails",
-            {
-              doctorId:
-                item.id.toString(),
-            }
-          )
-        }
-      >
-        {/* Doctor Avatar */}
-
-        <View style={styles.avatar}>
-          {renderAvatar(item)}
-        </View>
-
-        {/* Doctor Information */}
-
-        <View
-          style={styles.info}
+      <View style={styles.card}>
+        {/* Main Card Content */}
+        <TouchableOpacity
+          style={styles.cardMain}
+          activeOpacity={0.85}
+          onPress={() =>
+            navigation.navigate(
+              "DoctorDetails",
+              {
+                doctorId:
+                  item.id.toString(),
+                doctor: item,
+              }
+            )
+          }
         >
-          {/* Name */}
-
-          <Text
-            style={styles.name}
-            numberOfLines={1}
-          >
-            {item.name}
-          </Text>
-
-          {/* Specialization */}
-
-          <Text
-            style={
-              styles.specialization
-            }
-            numberOfLines={1}
-          >
-            {item.specialization}
-          </Text>
-
-          {/* Status */}
-
-          <View
-            style={styles.statusRow}
-          >
-            <View
-              style={styles.statusDot}
-            />
-
-            <Text
-              style={styles.statusText}
-            >
-              {item.status ||
-                "Active"}
-            </Text>
+          {/* Doctor Avatar */}
+          <View style={styles.avatar}>
+            {renderAvatar(item)}
           </View>
 
-          {/* Meta */}
+          {/* Doctor Information */}
+          <View style={styles.info}>
+            {/* Name */}
+            <Text style={styles.name} numberOfLines={1}>
+              {item.name}
+            </Text>
 
-          <View
-            style={styles.metaContainer}
-          >
-            <View
-              style={styles.metaRow}
-            >
-              <Ionicons
-                name="briefcase-outline"
-                size={14}
-                color="#64748B"
-              />
+            {/* Specialization */}
+            <Text style={styles.specialization} numberOfLines={1}>
+              {item.specialization}
+            </Text>
 
-              <Text
-                style={
-                  styles.metaText
-                }
-              >
-                {item.experience}{" "}
-                {doctor("years")}
+            {/* Status */}
+            <View style={styles.statusRow}>
+              <View style={styles.statusDot} />
+              <Text style={styles.statusText}>
+                {item.status || "Active"}
               </Text>
             </View>
 
-            {item.qualification ? (
-              <View
-                style={
-                  styles.metaRow
-                }
-              >
+            {/* Meta */}
+            <View style={styles.metaContainer}>
+              <View style={styles.metaRow}>
                 <Ionicons
-                  name="school-outline"
+                  name="briefcase-outline"
                   size={14}
                   color="#64748B"
                 />
-
-                <Text
-                  style={
-                    styles.metaText
-                  }
-                  numberOfLines={1}
-                >
-                  {item.qualification}
+                <Text style={styles.metaText}>
+                  {item.experience}{" "}
+                  {doctor("years")}
                 </Text>
               </View>
-            ) : null}
+
+              {item.qualification ? (
+                <View style={styles.metaRow}>
+                  <Ionicons
+                    name="school-outline"
+                    size={14}
+                    color="#64748B"
+                  />
+                  <Text style={styles.metaText} numberOfLines={1}>
+                    {item.qualification}
+                  </Text>
+                </View>
+              ) : null}
+            </View>
           </View>
-        </View>
 
-        {/* Arrow Container */}
+          {/* Arrow Container */}
+          <View style={styles.arrowContainer}>
+            <Ionicons
+              name="chevron-forward"
+              size={19}
+              color="#2563EB"
+            />
+          </View>
+        </TouchableOpacity>
 
-        <View
-          style={
-            styles.arrowContainer
-          }
-        >
-          <Ionicons
-            name="chevron-forward"
-            size={19}
-            color="#2563EB"
-          />
+        {/* Card Action Buttons Bar */}
+        <View style={styles.cardDivider} />
+        <View style={styles.cardActionsBar}>
+          <TouchableOpacity
+            style={styles.cardActionBtn}
+            activeOpacity={0.75}
+            onPress={() =>
+              navigation.navigate("EditDoctor", {
+                doctorId: item.id.toString(),
+                doctor: item,
+              })
+            }
+          >
+            <Ionicons name="create-outline" size={15} color="#2563EB" />
+            <Text style={styles.cardActionBtnTextBlue}>
+              {doctor("edit_short") || doctor("edit_doctor") || "Edit"}
+            </Text>
+          </TouchableOpacity>
+
+          <View style={styles.cardActionDivider} />
+
+          <TouchableOpacity
+            style={styles.cardActionBtn}
+            activeOpacity={0.75}
+            onPress={() =>
+              navigation.navigate("DoctorSchedule", {
+                doctorId: item.id.toString(),
+                doctor: item,
+              })
+            }
+          >
+            <Ionicons name="time-outline" size={15} color="#16A34A" />
+            <Text style={styles.cardActionBtnTextGreen}>
+              {doctor("schedule_short") || doctor("schedule") || "Schedule"}
+            </Text>
+          </TouchableOpacity>
+
+          <View style={styles.cardActionDivider} />
+
+          <TouchableOpacity
+            style={styles.cardActionBtn}
+            activeOpacity={0.75}
+            onPress={() =>
+              navigation.navigate("DoctorDetails", {
+                doctorId: item.id.toString(),
+                doctor: item,
+              })
+            }
+          >
+            <Ionicons name="information-circle-outline" size={15} color="#64748B" />
+            <Text style={styles.cardActionBtnTextGray}>
+              {doctor("details_short") || doctor("doctor_information") || "Details"}
+            </Text>
+          </TouchableOpacity>
+
+          <View style={styles.cardActionDivider} />
+
+          <TouchableOpacity
+            style={styles.cardActionBtn}
+            activeOpacity={0.75}
+            onPress={() => handleDeleteDoctor(item)}
+          >
+            <Ionicons name="trash-outline" size={15} color="#EF4444" />
+            <Text style={styles.cardActionBtnTextRed}>
+              {doctor("delete") || "Delete"}
+            </Text>
+          </TouchableOpacity>
         </View>
-      </TouchableOpacity>
+      </View>
     );
   };
 
@@ -526,8 +611,28 @@ export default function DoctorListScreen() {
       style={styles.container}
       edges={["top"]}
     >
-      {/* Search */}
+      {/* Top Header */}
+      <View style={styles.navHeader}>
+        <View style={styles.navHeaderLeft}>
+          <Text style={styles.navHeaderTitle}>
+            {doctor("doctors_list_title") || "Doctors"}
+          </Text>
 
+        </View>
+
+        <TouchableOpacity
+          style={styles.addDoctorHeaderBtn}
+          activeOpacity={0.8}
+          onPress={() => navigation.navigate("AddDoctor")}
+        >
+          <Ionicons name="person-add" size={16} color="#FFFFFF" />
+          <Text style={styles.addDoctorHeaderBtnText}>
+            {doctor("add_doctor")}
+          </Text>
+        </TouchableOpacity>
+      </View>
+
+      {/* Search */}
       <View
         style={
           styles.searchContainer
@@ -692,11 +797,11 @@ export default function DoctorListScreen() {
             >
               {search
                 ? doctor(
-                    "no_doctor_found"
-                  )
+                  "no_doctor_found"
+                )
                 : doctor(
-                    "no_doctors"
-                  )}
+                  "no_doctors"
+                )}
             </Text>
 
             <Text
@@ -706,33 +811,34 @@ export default function DoctorListScreen() {
             >
               {search
                 ? doctor(
-                    "try_another_keyword"
-                  )
+                  "try_another_keyword"
+                )
                 : doctor(
-                    "add_first_doctor"
-                  )}
+                  "add_first_doctor"
+                )}
             </Text>
           </View>
         }
       />
 
-      {/* Add Doctor */}
-
-      <TouchableOpacity
-        style={styles.fab}
-        activeOpacity={0.85}
-        onPress={() =>
-          navigation.navigate(
-            "AddDoctor"
-          )
-        }
-      >
-        <Ionicons
-          name="add"
-          size={30}
-          color="#FFFFFF"
-        />
-      </TouchableOpacity>
+      {/* Status Modal */}
+      <StatusModal
+        visible={statusModal.visible}
+        type={statusModal.type}
+        title={statusModal.title}
+        message={statusModal.message}
+        showCancel={statusModal.showCancel}
+        buttonText={statusModal.buttonText || doctor("ok")}
+        cancelText={statusModal.cancelText || doctor("cancel")}
+        confirmButtonColor={statusModal.confirmButtonColor}
+        onClose={() => setStatusModal((prev) => ({ ...prev, visible: false }))}
+        onCancel={() => setStatusModal((prev) => ({ ...prev, visible: false }))}
+        onConfirm={() => {
+          const cb = statusModal.onConfirm;
+          setStatusModal((prev) => ({ ...prev, visible: false }));
+          cb?.();
+        }}
+      />
     </SafeAreaView>
   );
 }
@@ -743,13 +849,73 @@ const styles = StyleSheet.create({
     backgroundColor: "#F8FAFC",
   },
 
+  navHeader: {
+    height: 56,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: 16,
+    backgroundColor: "#FFFFFF",
+    borderBottomWidth: 1,
+    borderBottomColor: "#E2E8F0",
+  },
+
+  navHeaderLeft: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+  },
+
+  navHeaderTitle: {
+    fontSize: 20,
+    fontWeight: "800",
+    color: "#0F172A",
+    letterSpacing: -0.3,
+  },
+
+  countBadge: {
+    backgroundColor: "#EFF6FF",
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: "#BFDBFE",
+  },
+
+  countBadgeText: {
+    fontSize: 12,
+    fontWeight: "700",
+    color: "#2563EB",
+  },
+
+  addDoctorHeaderBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#2563EB",
+    paddingHorizontal: 12,
+    paddingVertical: 7,
+    borderRadius: 10,
+    gap: 6,
+    elevation: 2,
+    shadowColor: "#2563EB",
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    shadowOffset: { width: 0, height: 2 },
+  },
+
+  addDoctorHeaderBtnText: {
+    color: "#FFFFFF",
+    fontSize: 13,
+    fontWeight: "700",
+  },
+
   // =====================================================
   // Search
   // =====================================================
 
   searchContainer: {
     marginHorizontal: 16,
-    marginTop: 16,
+    marginTop: 12,
     marginBottom: 8,
 
     height: 54,
@@ -810,29 +976,78 @@ const styles = StyleSheet.create({
 
   card: {
     backgroundColor: "#FFFFFF",
-
     borderRadius: 20,
-
-    padding: 15,
-
-    flexDirection: "row",
-    alignItems: "center",
-
     marginBottom: 14,
-
     borderWidth: 1,
     borderColor: "#E0EAFF",
-
     shadowColor: "#2563EB",
     shadowOpacity: 0.08,
     shadowRadius: 12,
-
     shadowOffset: {
       width: 0,
       height: 5,
     },
-
     elevation: 4,
+    overflow: "hidden",
+  },
+
+  cardMain: {
+    padding: 15,
+    flexDirection: "row",
+    alignItems: "center",
+  },
+
+  cardDivider: {
+    height: 1,
+    backgroundColor: "#F1F5F9",
+    marginHorizontal: 12,
+  },
+
+  cardActionsBar: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: 10,
+    paddingHorizontal: 8,
+    backgroundColor: "#FAFCFF",
+  },
+
+  cardActionBtn: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 4,
+    gap: 4,
+  },
+
+  cardActionDivider: {
+    width: 1,
+    height: 16,
+    backgroundColor: "#E2E8F0",
+  },
+
+  cardActionBtnTextBlue: {
+    fontSize: 12,
+    fontWeight: "700",
+    color: "#2563EB",
+  },
+
+  cardActionBtnTextGreen: {
+    fontSize: 12,
+    fontWeight: "700",
+    color: "#16A34A",
+  },
+
+  cardActionBtnTextGray: {
+    fontSize: 12,
+    fontWeight: "600",
+    color: "#64748B",
+  },
+
+  cardActionBtnTextRed: {
+    fontSize: 12,
+    fontWeight: "700",
+    color: "#EF4444",
   },
 
   // =====================================================

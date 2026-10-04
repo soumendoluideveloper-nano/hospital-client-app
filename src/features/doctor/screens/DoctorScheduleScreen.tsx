@@ -147,7 +147,8 @@ export default function DoctorScheduleScreen() {
   const route = useRoute<any>();
   const { t: doctorT } = useTranslation("doctor");
 
-  const doctorId = route.params?.doctorId;
+  const doctorId =
+    route.params?.doctorId || route.params?.id || route.params?.doctor?.id;
 
   // =========================================================
   // States

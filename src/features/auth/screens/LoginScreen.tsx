@@ -11,19 +11,18 @@ import {
   KeyboardAvoidingView,
   Platform,
   Image,
+  ScrollView,
 } from "react-native";
 import { useTranslation } from "react-i18next";
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { Ionicons } from "@expo/vector-icons";
 import { RootStackParamList } from "../../../navigation/AppNavigator";
-import { Pressable, Keyboard } from "react-native";
-import {
-  // loadLanguage,
-  isLanguageSelected,
-} from "../../../localization/i18n";
+import { isLanguageSelected } from "../../../localization/i18n";
 import LanguageModal from "../../../components/ui/LanguageModal";
 import CareSpotBrand from "../../../components/ui/CareSpotBrand";
+import { validateMobile } from "../../../utils/validation";
+
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
 export default function LoginScreen() {
@@ -33,13 +32,12 @@ export default function LoginScreen() {
 
   const { login } = useAuth();
 
-  const [loading, setLoading] =
-    useState(false);
-
+  const [loading, setLoading] = useState(false);
   const navigation = useNavigation<NavigationProp>();
 
   const [mobile, setMobile] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [mobileError, setMobileError] = useState("");
   const [passwordError, setPasswordError] = useState("");
   const [showLanguage, setShowLanguage] = useState(false);
@@ -47,60 +45,46 @@ export default function LoginScreen() {
   useEffect(() => {
     const checkLanguage = async () => {
       const selected = await isLanguageSelected();
-
       if (!selected) {
         setShowLanguage(true);
       }
     };
-
     checkLanguage();
   }, []);
+
   const handleLogin = async () => {
     setMobileError("");
     setPasswordError("");
 
-    let isValid = true;
-
-    if (!mobile.trim()) {
-      setMobileError(auth("mobile_required"));
-      isValid = false;
-    } else if (mobile.length !== 10) {
-      setMobileError(auth("invalid_mobile"));
-      isValid = false;
+    const mobileVal = validateMobile(mobile, common);
+    if (!mobileVal.isValid) {
+      setMobileError(mobileVal.message);
+      return;
     }
 
     if (!password.trim()) {
-      setPasswordError(signup("password_required"));
-      isValid = false;
+      setPasswordError(signup("password_required") || "Password is required");
+      return;
     }
-
-    if (!isValid) return;
 
     try {
       setLoading(true);
 
       const response = await loginApi({
-        phone: mobile,
+        phone: mobile.trim(),
         password,
       });
-      if (!response || !response.data || !response.data.token) {
-        throw new Error(auth("login_wrong"));
-      }
 
-      console.log(response);
+      if (!response || !response.data || !response.data.token) {
+        throw new Error(auth("login_wrong") || "Invalid login response from server");
+      }
 
       const token = response?.data?.token ?? "";
       const clinic = response?.data?.clinic ?? "";
 
       await login(token, clinic);
-
-      // AppNavigator automatically Dashboard দেখাবে
-
     } catch (err: any) {
-      console.log(err);
-      setPasswordError(
-        err.message || auth("login_failed")
-      );
+      setPasswordError(err.message || auth("login_failed") || "Login failed. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -112,13 +96,15 @@ export default function LoginScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <Pressable
+      <KeyboardAvoidingView
         style={{ flex: 1 }}
-        onPress={Keyboard.dismiss}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 20}
       >
-        <KeyboardAvoidingView
-          style={styles.wrapper}
-          behavior={Platform.OS === "ios" ? "padding" : "height"}
+        <ScrollView
+          contentContainerStyle={styles.scrollContent}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
         >
           <View style={{ alignItems: "center" }}>
             <View style={styles.logoIconBox}>
@@ -148,7 +134,7 @@ export default function LoginScreen() {
             <View
               style={[
                 styles.inputContainer,
-                mobileError && styles.errorInput,
+                mobileError ? styles.errorInput : null,
               ]}
             >
               <Ionicons
@@ -161,12 +147,20 @@ export default function LoginScreen() {
               <TextInput
                 style={styles.input}
                 placeholder={common("enter_mobile")}
+                placeholderTextColor="#94A3B8"
                 keyboardType="phone-pad"
                 maxLength={10}
                 value={mobile}
                 onChangeText={(text) => {
-                  setMobile(text);
+                  const cleaned = text.replace(/\D/g, "");
+                  setMobile(cleaned);
                   if (mobileError) setMobileError("");
+                }}
+                onBlur={() => {
+                  if (mobile.trim()) {
+                    const res = validateMobile(mobile, common);
+                    if (!res.isValid) setMobileError(res.message);
+                  }
                 }}
               />
             </View>
@@ -182,7 +176,7 @@ export default function LoginScreen() {
             <View
               style={[
                 styles.inputContainer,
-                passwordError && styles.errorInput,
+                passwordError ? styles.errorInput : null,
               ]}
             >
               <Ionicons
@@ -195,13 +189,25 @@ export default function LoginScreen() {
               <TextInput
                 style={styles.input}
                 placeholder={common("enter_password")}
-                secureTextEntry
+                placeholderTextColor="#94A3B8"
+                secureTextEntry={!showPassword}
                 value={password}
                 onChangeText={(text) => {
                   setPassword(text);
                   if (passwordError) setPasswordError("");
                 }}
               />
+
+              <TouchableOpacity
+                onPress={() => setShowPassword(!showPassword)}
+                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+              >
+                <Ionicons
+                  name={showPassword ? "eye-off-outline" : "eye-outline"}
+                  size={20}
+                  color="#64748B"
+                />
+              </TouchableOpacity>
             </View>
 
             {passwordError ? (
@@ -209,9 +215,10 @@ export default function LoginScreen() {
             ) : null}
 
             <TouchableOpacity
-              style={styles.button}
+              style={[styles.button, loading ? styles.buttonDisabled : null]}
               onPress={handleLogin}
               disabled={loading}
+              activeOpacity={0.8}
             >
               <Text style={styles.buttonText}>
                 {loading
@@ -231,15 +238,14 @@ export default function LoginScreen() {
                 </Text>
               </Text>
             </TouchableOpacity>
-
           </View>
 
           <Text style={styles.footer}>
             {common("footer")}
           </Text>
+        </ScrollView>
+      </KeyboardAvoidingView>
 
-        </KeyboardAvoidingView>
-      </Pressable>
       <LanguageModal
         visible={showLanguage}
         onClose={() => setShowLanguage(false)}
@@ -247,17 +253,18 @@ export default function LoginScreen() {
     </SafeAreaView>
   );
 }
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#F8FAFC",
   },
 
-  wrapper: {
-    flex: 1,
+  scrollContent: {
+    flexGrow: 1,
     justifyContent: "space-between",
     paddingHorizontal: 24,
-    paddingVertical: 40,
+    paddingVertical: 24,
   },
 
   logoIconBox: {
@@ -310,41 +317,36 @@ const styles = StyleSheet.create({
   },
 
   form: {
-    marginTop: 20,
+    marginTop: 16,
   },
 
   label: {
     marginBottom: 8,
-    marginTop: 16,
+    marginTop: 14,
     color: "#334155",
     fontWeight: "600",
     fontSize: 15,
   },
 
-  // input: {
-  //   height: 56,
-  //   borderWidth: 1,
-  //   borderColor: "#CBD5E1",
-  //   borderRadius: 12,
-  //   paddingHorizontal: 16,
-  //   backgroundColor: "#FFFFFF",
-  //   fontSize: 16,
-  //   color: "#0F172A",
-  // },
   input: {
     flex: 1,
     fontSize: 16,
     color: "#0F172A",
+    height: "100%",
   },
 
   button: {
-    marginTop: 28,
+    marginTop: 24,
     backgroundColor: "#2563EB",
     height: 56,
     borderRadius: 12,
     justifyContent: "center",
     alignItems: "center",
     elevation: 3,
+  },
+
+  buttonDisabled: {
+    opacity: 0.7,
   },
 
   buttonText: {
@@ -354,7 +356,7 @@ const styles = StyleSheet.create({
   },
 
   signupButton: {
-    marginTop: 20,
+    marginTop: 18,
     alignItems: "center",
   },
 
@@ -371,9 +373,11 @@ const styles = StyleSheet.create({
   footer: {
     textAlign: "center",
     color: "#94A3B8",
+    marginTop: 20,
     marginBottom: 10,
     fontSize: 13,
   },
+
   errorInput: {
     borderColor: "#EF4444",
   },
@@ -385,6 +389,7 @@ const styles = StyleSheet.create({
     marginLeft: 3,
     fontWeight: "500",
   },
+
   inputContainer: {
     height: 56,
     borderWidth: 1,
@@ -399,6 +404,4 @@ const styles = StyleSheet.create({
   icon: {
     marginRight: 10,
   },
-
-
 });

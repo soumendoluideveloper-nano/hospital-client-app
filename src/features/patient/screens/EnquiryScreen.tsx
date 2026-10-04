@@ -86,12 +86,15 @@ export default function EnquiryScreen() {
     loadDoctors();
   }, []);
 
-  // Sync route param filter if updated (e.g. from Dashboard "Today's Patients" card)
+  // Sync route param filter and doctorId if updated (e.g. from Dashboard or DoctorDetails)
   useEffect(() => {
     if (route.params?.filter) {
       setActiveTab(route.params.filter);
     }
-  }, [route.params?.filter]);
+    if (route.params?.doctorId) {
+      setSelectedDoctorId(route.params.doctorId);
+    }
+  }, [route.params?.filter, route.params?.doctorId]);
 
   const fetchEnquiries = useCallback(
     async (isRefresh = false) => {

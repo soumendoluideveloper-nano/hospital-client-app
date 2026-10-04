@@ -73,6 +73,12 @@
   "try_another_keyword": "Try another keyword",
   "add_first_doctor": "Add your first doctor to get started.",
 
+  "doctors_list_title": "Doctors",
+  "manage_doctors_subtitle": "Manage clinic doctors & schedules",
+  "total_doctors": "Total Doctors",
+  "edit_short": "Edit",
+  "schedule_short": "Schedule",
+  "details_short": "Details",
   "doctor_information": "Doctor Information",
   "mobile": "Mobile",
   "not_available": "Not Available",
@@ -95,7 +101,11 @@
 
   "delete": "Delete",
   "cancel": "Cancel",
-  "delete_doctor_confirmation": "Are you sure you want to delete this doctor?",
+  "delete_doctor_title": "Delete Doctor",
+  "delete_doctor_confirmation": "Are you sure you want to delete this doctor? This will remove the doctor from your clinic.",
+  "delete_success_title": "Doctor Deleted",
+  "delete_success_message": "The doctor has been removed successfully from your clinic.",
+  "delete_failed": "Failed to delete doctor. Please try again.",
 
   "update_doctor_information": "Update doctor's information",
 

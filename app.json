@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "CareSpot Clinic Partner",
+    "name": "CareSpot Partner",
     "slug": "carespot-clinic-partner",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -14,7 +14,12 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.carespot.clinicpartner"
+      "bundleIdentifier": "com.carespot.clinicpartner",
+      "infoPlist": {
+        "NSCameraUsageDescription": "CareSpot needs access to your camera to take clinic profile photos.",
+        "NSPhotoLibraryUsageDescription": "CareSpot needs access to your photo library to select clinic profile photos.",
+        "NSLocationWhenInUseUsageDescription": "CareSpot needs access to your location to set your clinic address coordinates."
+      }
     },
     "android": {
       "package": "com.carespot.clinicpartner",
@@ -25,9 +30,13 @@
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
       "permissions": [
-        "android.permission.RECORD_AUDIO",
+        "android.permission.CAMERA",
+        "android.permission.READ_MEDIA_IMAGES",
+        "android.permission.READ_EXTERNAL_STORAGE",
+        "android.permission.WRITE_EXTERNAL_STORAGE",
         "android.permission.ACCESS_COARSE_LOCATION",
-        "android.permission.ACCESS_FINE_LOCATION"
+        "android.permission.ACCESS_FINE_LOCATION",
+        "android.permission.INTERNET"
       ]
     },
     "web": {

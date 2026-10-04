@@ -172,6 +172,15 @@ export const updateDoctorApi = async (
   );
 };
 
+export const deleteDoctorApi = async (doctorId: number | string) => {
+  return await apiClient<{ status: number; message: string }>(
+    `${API_ENDPOINTS.DOCTOR.DETAILS}/${doctorId}`,
+    {
+      method: "DELETE",
+    }
+  );
+};
+
 // =====================================================
 // Doctor Schedule
 // =====================================================

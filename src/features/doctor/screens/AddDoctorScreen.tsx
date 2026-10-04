@@ -6,83 +6,56 @@ import {
   TextInput,
   TouchableOpacity,
   View,
+  KeyboardAvoidingView,
+  Platform,
+  ActivityIndicator,
 } from "react-native";
-
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useTranslation } from "react-i18next";
 import { addDoctorApi } from "../api/doctor.api";
 import StatusModal from "../../../components/ui/StatusModal";
-
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { RootStackParamList } from "../../../navigation/AppNavigator";
+import {
+  validateDoctorName,
+  validateMobile,
+  validateEmail,
+  validateQualification,
+  validateSpecialization,
+  validateExperience,
+  validateRegistrationNo,
+  validateConsultationFee,
+  validateAbout,
+} from "../../../utils/validation";
+
 export default function AddDoctorScreen() {
+  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+  const { t: doctor } = useTranslation("doctor");
 
-  const navigation =
-  useNavigation<
-    NativeStackNavigationProp<RootStackParamList>
-  >();
-  const { t: doctor } =
-    useTranslation("doctor");
-
-  const [fullName, setFullName] =
-    useState("");
-
-  const [mobile, setMobile] =
-    useState("");
-
-  const [email, setEmail] =
-    useState("");
-
-  const [qualification, setQualification] =
-    useState("");
-
-  const [specialization, setSpecialization] =
-    useState("");
-
-  const [experience, setExperience] =
-    useState("");
-
-  const [registrationNo, setRegistrationNo] =
-    useState("");
-
-  const [consultationFee, setConsultationFee] =
-    useState("");
-
-  const [aboutDoctor, setAboutDoctor] =
-    useState("");
+  const [fullName, setFullName] = useState("");
+  const [mobile, setMobile] = useState("");
+  const [email, setEmail] = useState("");
+  const [qualification, setQualification] = useState("");
+  const [specialization, setSpecialization] = useState("");
+  const [experience, setExperience] = useState("");
+  const [registrationNo, setRegistrationNo] = useState("");
+  const [consultationFee, setConsultationFee] = useState("");
+  const [aboutDoctor, setAboutDoctor] = useState("");
 
   // Errors
+  const [fullNameError, setFullNameError] = useState("");
+  const [mobileError, setMobileError] = useState("");
+  const [emailError, setEmailError] = useState("");
+  const [qualificationError, setQualificationError] = useState("");
+  const [specializationError, setSpecializationError] = useState("");
+  const [experienceError, setExperienceError] = useState("");
+  const [registrationNoError, setRegistrationNoError] = useState("");
+  const [consultationFeeError, setConsultationFeeError] = useState("");
+  const [aboutDoctorError, setAboutDoctorError] = useState("");
 
-  const [fullNameError, setFullNameError] =
-    useState("");
-
-  const [mobileError, setMobileError] =
-    useState("");
-
-  const [emailError, setEmailError] =
-    useState("");
-
-  const [qualificationError, setQualificationError] =
-    useState("");
-
-  const [specializationError, setSpecializationError] =
-    useState("");
-
-  const [experienceError, setExperienceError] =
-    useState("");
-
-  const [registrationNoError, setRegistrationNoError] =
-    useState("");
-
-  const [consultationFeeError, setConsultationFeeError] =
-    useState("");
-
-  const [aboutDoctorError, setAboutDoctorError] =
-    useState("");
-const [statusModal, setStatusModal] =
-  useState<{
+  const [statusModal, setStatusModal] = useState<{
     visible: boolean;
     type: "success" | "error" | "warning";
     title: string;
@@ -94,11 +67,8 @@ const [statusModal, setStatusModal] =
     title: "",
     message: "",
   });
-  const [loading, setLoading] =
-    useState(false);
-  // =========================================================
-  // Validation
-  // =========================================================
+
+  const [loading, setLoading] = useState(false);
 
   const validate = () => {
     setFullNameError("");
@@ -113,732 +83,530 @@ const [statusModal, setStatusModal] =
 
     let valid = true;
 
-    const emailRegex =
-      /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-    // Full Name
-
-    if (!fullName.trim()) {
-      setFullNameError(
-        doctor("full_name_required")
-      );
-
+    const nameVal = validateDoctorName(fullName, doctor);
+    if (!nameVal.isValid) {
+      setFullNameError(nameVal.message);
       valid = false;
     }
 
-    // Mobile
-
-    if (!mobile.trim()) {
-      setMobileError(
-        doctor("mobile_required")
-      );
-
-      valid = false;
-    } else if (mobile.length !== 10) {
-      setMobileError(
-        doctor("invalid_mobile")
-      );
-
+    const mobileVal = validateMobile(mobile, doctor);
+    if (!mobileVal.isValid) {
+      setMobileError(mobileVal.message);
       valid = false;
     }
 
-    // Email
-
-    if (!email.trim()) {
-      setEmailError(
-        doctor("email_required")
-      );
-
-      valid = false;
-    } else if (
-      !emailRegex.test(email.trim())
-    ) {
-      setEmailError(
-        doctor("invalid_email")
-      );
-
+    const emailVal = validateEmail(email, true, doctor);
+    if (!emailVal.isValid) {
+      setEmailError(emailVal.message);
       valid = false;
     }
 
-    // Qualification
-
-    if (!qualification.trim()) {
-      setQualificationError(
-        doctor("qualification_required")
-      );
-
+    const qualVal = validateQualification(qualification, doctor);
+    if (!qualVal.isValid) {
+      setQualificationError(qualVal.message);
       valid = false;
     }
 
-    // Specialization
-
-    if (!specialization.trim()) {
-      setSpecializationError(
-        doctor("specialization_required")
-      );
-
+    const specVal = validateSpecialization(specialization, doctor);
+    if (!specVal.isValid) {
+      setSpecializationError(specVal.message);
       valid = false;
     }
 
-    // Experience
-
-    if (!experience.trim()) {
-      setExperienceError(
-        doctor("experience_required")
-      );
-
-      valid = false;
-    } else if (
-      !/^\d+$/.test(
-        experience.trim()
-      )
-    ) {
-      setExperienceError(
-        doctor("invalid_experience")
-      );
-
+    const expVal = validateExperience(experience, doctor);
+    if (!expVal.isValid) {
+      setExperienceError(expVal.message);
       valid = false;
     }
 
-    // Registration No
-
-    if (!registrationNo.trim()) {
-      setRegistrationNoError(
-        doctor("registration_no_required")
-      );
-
+    const regVal = validateRegistrationNo(registrationNo, false, doctor);
+    if (!regVal.isValid) {
+      setRegistrationNoError(regVal.message);
       valid = false;
     }
 
-    // Consultation Fee
-
-    if (!consultationFee.trim()) {
-      setConsultationFeeError(
-        doctor("consultation_fee_required")
-      );
-
-      valid = false;
-    } else if (
-      !/^\d+$/.test(
-        consultationFee.trim()
-      )
-    ) {
-      setConsultationFeeError(
-        doctor(
-          "invalid_consultation_fee"
-        )
-      );
-
+    const feeVal = validateConsultationFee(consultationFee, doctor);
+    if (!feeVal.isValid) {
+      setConsultationFeeError(feeVal.message);
       valid = false;
     }
 
-    // About Doctor
-
-    if (!aboutDoctor.trim()) {
-      setAboutDoctorError(
-        doctor("about_doctor_required")
-      );
-
+    const aboutVal = validateAbout(aboutDoctor);
+    if (!aboutVal.isValid) {
+      setAboutDoctorError(aboutVal.message);
       valid = false;
     }
 
     return valid;
   };
 
-  // =========================================================
-  // Submit
-  // =========================================================
+  const handleSaveDoctor = async () => {
+    if (loading) return;
 
-const handleSaveDoctor = async () => {
-  
-  const isValid = validate();
+    const isValid = validate();
+    if (!isValid) return;
 
-  if (!isValid) {
-    return;
-  }
+    try {
+      setLoading(true);
 
-  try {
-    setLoading(true);
+      const payload = {
+        name: fullName.trim(),
+        phone: mobile.trim(),
+        email: email.trim(),
+        qualification: qualification.trim(),
+        specialization: specialization.trim(),
+        experience: Number(experience),
+        registration_no: registrationNo.trim() || undefined,
+        consultation_fee: Number(consultationFee),
+        about: aboutDoctor.trim() || undefined,
+      };
 
-
-    const payload = {
-      name: fullName.trim(),
-      phone: mobile.trim(),
-      email: email.trim(),
-      qualification: qualification.trim(),
-      specialization: specialization.trim(),
-      experience: Number(experience),
-      registration_no: registrationNo.trim(),
-      consultation_fee: Number(consultationFee),
-      about: aboutDoctor.trim(),
-    };
-
-    const response = await addDoctorApi(
-      payload
-    );
-    if(response.status==1){
-        console.log(
-      "Add Doctor Response:",
-      response
-    );
-      setStatusModal({
-        visible: true,
-        type: "success",
-        title: doctor("doctor_added"),
-        message: doctor(
-          "doctor_added_successfully"
-        ),
-        onConfirm: () => navigation.goBack(),
-      });
-
-    }
-    else{
+      const response = await addDoctorApi(payload as any);
+      if (response.status === 1 || response.status === 201 || (response as any).success) {
+        setStatusModal({
+          visible: true,
+          type: "success",
+          title: doctor("doctor_added") || "Doctor Added",
+          message: doctor("doctor_added_successfully") || "Doctor added successfully!",
+          onConfirm: () => {
+            if (navigation.canGoBack()) {
+              navigation.goBack();
+            } else {
+              navigation.navigate("Dashboard");
+            }
+          },
+        });
+      } else {
+        setStatusModal({
+          visible: true,
+          type: "error",
+          title: doctor("error") || "Error",
+          message: response.message || "Failed to add doctor",
+        });
+      }
+    } catch (error: any) {
       setStatusModal({
         visible: true,
         type: "error",
-        title: doctor("error"),
-        message: response.message,
+        title: doctor("error") || "Error",
+        message: error?.message || doctor("something_went_wrong") || "Something went wrong",
       });
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
+  };
 
-  } catch (error: any) {
-    console.log(
-      "Add Doctor Error:",
-      error
-    );
-    setLoading(false);
-
-    setStatusModal({
-        visible: true,
-        type: "error",
-        title: doctor("error"),
-        message: doctor("something_went_wrong"),
-      });
-  } finally {
-    setLoading(false);
-   
-  }
-};
+  const handleNavBack = () => {
+    if (navigation.canGoBack()) {
+      navigation.goBack();
+    } else {
+      navigation.navigate("Dashboard");
+    }
+  };
 
   return (
-    <SafeAreaView
-      style={styles.container}
-      edges={["top"]}
-    >
+    <SafeAreaView style={styles.container} edges={["top"]}>
       {/* Navigation Header */}
       <View style={styles.navHeader}>
         <TouchableOpacity
           style={styles.backBtn}
-          onPress={() => navigation.goBack()}
+          onPress={handleNavBack}
           activeOpacity={0.7}
         >
           <Ionicons name="arrow-back" size={24} color="#0F172A" />
         </TouchableOpacity>
-
-        <Text style={styles.navTitle}>
-          {doctor("add_doctor")}
-        </Text>
-
+        <Text style={styles.navTitle}>{doctor("add_doctor")}</Text>
         <View style={{ width: 40 }} />
       </View>
 
-      <ScrollView
-        contentContainerStyle={
-          styles.content
-        }
-        showsVerticalScrollIndicator={false}
-        keyboardShouldPersistTaps="handled"
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 20}
       >
-        <Text style={styles.subHeading}>
-          {doctor("add_doctor_subtitle")}
-        </Text>
+        <ScrollView
+          contentContainerStyle={styles.content}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+        >
+          <Text style={styles.subHeading}>{doctor("add_doctor_subtitle")}</Text>
 
-        <View style={styles.card}>
-
-          {/* =================================================
-              Full Name
-          ================================================= */}
-
-          <Text style={styles.label}>
-            {doctor("full_name")}
-          </Text>
-
-          <View
-            style={[
-              styles.inputContainer,
-              fullNameError &&
-                styles.errorInput,
-            ]}
-          >
-            <Ionicons
-              name="person-outline"
-              size={20}
-              color="#64748B"
-              style={styles.icon}
-            />
-
-            <TextInput
-              style={styles.input}
-              placeholder={doctor(
-                "full_name_placeholder"
-              )}
-              value={fullName}
-              onChangeText={(text) => {
-                setFullName(text);
-
-                if (fullNameError) {
-                  setFullNameError("");
-                }
-              }}
-            />
-          </View>
-
-          {!!fullNameError && (
-            <Text style={styles.errorText}>
-              {fullNameError}
-            </Text>
-          )}
-
-          {/* =================================================
-              Mobile
-          ================================================= */}
-
-          <Text style={styles.label}>
-            {doctor("mobile_number")}
-          </Text>
-
-          <View
-            style={[
-              styles.inputContainer,
-              mobileError &&
-                styles.errorInput,
-            ]}
-          >
-            <Ionicons
-              name="call-outline"
-              size={20}
-              color="#64748B"
-              style={styles.icon}
-            />
-
-            <TextInput
-              style={styles.input}
-              placeholder={doctor(
-                "mobile_number_placeholder"
-              )}
-              keyboardType="phone-pad"
-              maxLength={10}
-              value={mobile}
-              onChangeText={(text) => {
-                const value =
-                  text.replace(
-                    /\D/g,
-                    ""
-                  );
-
-                setMobile(value);
-
-                if (mobileError) {
-                  setMobileError("");
-                }
-              }}
-            />
-          </View>
-
-          {!!mobileError && (
-            <Text style={styles.errorText}>
-              {mobileError}
-            </Text>
-          )}
-
-          {/* =================================================
-              Email
-          ================================================= */}
-
-          <Text style={styles.label}>
-            {doctor("email")}
-          </Text>
-
-          <View
-            style={[
-              styles.inputContainer,
-              emailError &&
-                styles.errorInput,
-            ]}
-          >
-            <Ionicons
-              name="mail-outline"
-              size={20}
-              color="#64748B"
-              style={styles.icon}
-            />
-
-            <TextInput
-              style={styles.input}
-              placeholder={doctor(
-                "email_placeholder"
-              )}
-              keyboardType="email-address"
-              autoCapitalize="none"
-              value={email}
-              onChangeText={(text) => {
-                setEmail(text);
-
-                if (emailError) {
-                  setEmailError("");
-                }
-              }}
-            />
-          </View>
-
-          {!!emailError && (
-            <Text style={styles.errorText}>
-              {emailError}
-            </Text>
-          )}
-
-          {/* =================================================
-              Qualification
-          ================================================= */}
-
-          <Text style={styles.label}>
-            {doctor("qualification")}
-          </Text>
-
-          <View
-            style={[
-              styles.inputContainer,
-              qualificationError &&
-                styles.errorInput,
-            ]}
-          >
-            <Ionicons
-              name="school-outline"
-              size={20}
-              color="#64748B"
-              style={styles.icon}
-            />
-
-            <TextInput
-              style={styles.input}
-              placeholder={doctor(
-                "qualification_placeholder"
-              )}
-              value={qualification}
-              onChangeText={(text) => {
-                setQualification(text);
-
-                if (
-                  qualificationError
-                ) {
-                  setQualificationError(
-                    ""
-                  );
-                }
-              }}
-            />
-          </View>
-
-          {!!qualificationError && (
-            <Text style={styles.errorText}>
-              {qualificationError}
-            </Text>
-          )}
-
-          {/* =================================================
-              Specialization
-          ================================================= */}
-
-          <Text style={styles.label}>
-            {doctor("specialization")}
-          </Text>
-
-          <View
-            style={[
-              styles.inputContainer,
-              specializationError &&
-                styles.errorInput,
-            ]}
-          >
-            <Ionicons
-              name="medical-outline"
-              size={20}
-              color="#64748B"
-              style={styles.icon}
-            />
-
-            <TextInput
-              style={styles.input}
-              placeholder={doctor(
-                "specialization_placeholder"
-              )}
-              value={specialization}
-              onChangeText={(text) => {
-                setSpecialization(text);
-
-                if (
-                  specializationError
-                ) {
-                  setSpecializationError(
-                    ""
-                  );
-                }
-              }}
-            />
-          </View>
-
-          {!!specializationError && (
-            <Text style={styles.errorText}>
-              {specializationError}
-            </Text>
-          )}
-
-          {/* =================================================
-              Experience
-          ================================================= */}
-
-          <Text style={styles.label}>
-            {doctor("experience")}
-          </Text>
-
-          <View
-            style={[
-              styles.inputContainer,
-              experienceError &&
-                styles.errorInput,
-            ]}
-          >
-            <Ionicons
-              name="time-outline"
-              size={20}
-              color="#64748B"
-              style={styles.icon}
-            />
-
-            <TextInput
-              style={styles.input}
-              placeholder={doctor(
-                "experience_placeholder"
-              )}
-              keyboardType="number-pad"
-              value={experience}
-              onChangeText={(text) => {
-                const value =
-                  text.replace(
-                    /\D/g,
-                    ""
-                  );
-
-                setExperience(value);
-
-                if (experienceError) {
-                  setExperienceError("");
-                }
-              }}
-            />
-
-            <Text style={styles.suffix}>
-              {doctor("years")}
-            </Text>
-          </View>
-
-          {!!experienceError && (
-            <Text style={styles.errorText}>
-              {experienceError}
-            </Text>
-          )}
-
-          {/* =================================================
-              Registration Number
-          ================================================= */}
-
-          <Text style={styles.label}>
-            {doctor("registration_no")}
-          </Text>
-
-          <View
-            style={[
-              styles.inputContainer,
-              registrationNoError &&
-                styles.errorInput,
-            ]}
-          >
-            <Ionicons
-              name="document-text-outline"
-              size={20}
-              color="#64748B"
-              style={styles.icon}
-            />
-
-            <TextInput
-              style={styles.input}
-              placeholder={doctor(
-                "registration_no_placeholder"
-              )}
-              autoCapitalize="characters"
-              value={registrationNo}
-              onChangeText={(text) => {
-                setRegistrationNo(text);
-
-                if (
-                  registrationNoError
-                ) {
-                  setRegistrationNoError(
-                    ""
-                  );
-                }
-              }}
-            />
-          </View>
-
-          {!!registrationNoError && (
-            <Text style={styles.errorText}>
-              {registrationNoError}
-            </Text>
-          )}
-
-          {/* =================================================
-              Consultation Fee
-          ================================================= */}
-
-          <Text style={styles.label}>
-            {doctor("consultation_fee")}
-          </Text>
-
-          <View
-            style={[
-              styles.inputContainer,
-              consultationFeeError &&
-                styles.errorInput,
-            ]}
-          >
-            <Text style={styles.currency}>
-              ₹
-            </Text>
-
-            <TextInput
-              style={styles.input}
-              placeholder={doctor(
-                "consultation_fee_placeholder"
-              )}
-              keyboardType="number-pad"
-              value={consultationFee}
-              onChangeText={(text) => {
-                const value =
-                  text.replace(
-                    /\D/g,
-                    ""
-                  );
-
-                setConsultationFee(
-                  value
-                );
-
-                if (
-                  consultationFeeError
-                ) {
-                  setConsultationFeeError(
-                    ""
-                  );
-                }
-              }}
-            />
-          </View>
-
-          {!!consultationFeeError && (
-            <Text style={styles.errorText}>
-              {consultationFeeError}
-            </Text>
-          )}
-
-          {/* =================================================
-              About Doctor
-          ================================================= */}
-
-          <Text style={styles.label}>
-            {doctor("about_doctor")}
-          </Text>
-
-          <View
-            style={[
-              styles.textAreaContainer,
-              aboutDoctorError &&
-                styles.errorInput,
-            ]}
-          >
-            <TextInput
-              placeholder={doctor(
-                "about_doctor_placeholder"
-              )}
-              multiline
-              numberOfLines={5}
-              textAlignVertical="top"
-              style={styles.textArea}
-              value={aboutDoctor}
-              onChangeText={(text) => {
-                setAboutDoctor(text);
-
-                if (
-                  aboutDoctorError
-                ) {
-                  setAboutDoctorError(
-                    ""
-                  );
-                }
-              }}
-            />
-          </View>
-
-          {!!aboutDoctorError && (
-            <Text style={styles.errorText}>
-              {aboutDoctorError}
-            </Text>
-          )}
-
-          {/* =================================================
-              Save Button
-          ================================================= */}
-
-          <TouchableOpacity
-            style={styles.button}
-            onPress={
-              handleSaveDoctor
-            }
-            disabled={loading}
-          >
-            <Text
-              style={styles.buttonText}
+          <View style={styles.card}>
+            {/* Full Name */}
+            <Text style={styles.label}>{doctor("full_name")} *</Text>
+            <View
+              style={[
+                styles.inputContainer,
+                fullNameError ? styles.errorInput : null,
+              ]}
             >
-             {loading ? "Saving..." : doctor("save_doctor")}
+              <Ionicons
+                name="person-outline"
+                size={20}
+                color="#64748B"
+                style={styles.icon}
+              />
+              <TextInput
+                style={styles.input}
+                placeholder={doctor("full_name_placeholder")}
+                placeholderTextColor="#94A3B8"
+                value={fullName}
+                maxLength={150}
+                onChangeText={(text) => {
+                  const cleaned = text.replace(/[^a-zA-Z\s\.\'\,\-]/g, "");
+                  setFullName(cleaned);
+                  if (fullNameError) setFullNameError("");
+                }}
+                onBlur={() => {
+                  if (fullName.trim()) {
+                    const res = validateDoctorName(fullName, doctor);
+                    if (!res.isValid) setFullNameError(res.message);
+                  }
+                }}
+              />
+            </View>
+            {!!fullNameError && <Text style={styles.errorText}>{fullNameError}</Text>}
 
-            </Text>
-          </TouchableOpacity>
+            {/* Mobile */}
+            <Text style={styles.label}>{doctor("mobile_number")} *</Text>
+            <View
+              style={[
+                styles.inputContainer,
+                mobileError ? styles.errorInput : null,
+              ]}
+            >
+              <Ionicons
+                name="call-outline"
+                size={20}
+                color="#64748B"
+                style={styles.icon}
+              />
+              <TextInput
+                style={styles.input}
+                placeholder={doctor("mobile_number_placeholder")}
+                placeholderTextColor="#94A3B8"
+                keyboardType="phone-pad"
+                maxLength={10}
+                value={mobile}
+                onChangeText={(text) => {
+                  const value = text.replace(/\D/g, "");
+                  setMobile(value);
+                  if (mobileError) setMobileError("");
+                }}
+                onBlur={() => {
+                  if (mobile.trim()) {
+                    const res = validateMobile(mobile, doctor);
+                    if (!res.isValid) setMobileError(res.message);
+                  }
+                }}
+              />
+            </View>
+            {!!mobileError && <Text style={styles.errorText}>{mobileError}</Text>}
 
-        </View>
-      </ScrollView>
-     <StatusModal
-  visible={statusModal.visible}
-  type={statusModal.type}
-  title={statusModal.title}
-  message={statusModal.message}
-  buttonText={doctor("ok")}
+            {/* Email */}
+            <Text style={styles.label}>{doctor("email")} *</Text>
+            <View
+              style={[
+                styles.inputContainer,
+                emailError ? styles.errorInput : null,
+              ]}
+            >
+              <Ionicons
+                name="mail-outline"
+                size={20}
+                color="#64748B"
+                style={styles.icon}
+              />
+              <TextInput
+                style={styles.input}
+                placeholder={doctor("email_placeholder")}
+                placeholderTextColor="#94A3B8"
+                keyboardType="email-address"
+                autoCapitalize="none"
+                value={email}
+                onChangeText={(text) => {
+                  const value = text.replace(/\s/g, "").toLowerCase();
+                  setEmail(value);
+                  if (emailError) setEmailError("");
+                }}
+                onBlur={() => {
+                  if (email.trim()) {
+                    const res = validateEmail(email, true, doctor);
+                    if (!res.isValid) setEmailError(res.message);
+                  }
+                }}
+              />
+            </View>
+            {!!emailError && <Text style={styles.errorText}>{emailError}</Text>}
 
-  onClose={() =>
-    setStatusModal((prev) => ({
-      ...prev,
-      visible: false,
-    }))
-  }
+            {/* Qualification */}
+            <Text style={styles.label}>{doctor("qualification")} *</Text>
+            <View
+              style={[
+                styles.inputContainer,
+                qualificationError ? styles.errorInput : null,
+              ]}
+            >
+              <Ionicons
+                name="school-outline"
+                size={20}
+                color="#64748B"
+                style={styles.icon}
+              />
+              <TextInput
+                style={styles.input}
+                placeholder={doctor("qualification_placeholder")}
+                placeholderTextColor="#94A3B8"
+                value={qualification}
+                maxLength={200}
+                onChangeText={(text) => {
+                  const cleaned = text.replace(/[^a-zA-Z0-9\s\.\,\(\)\/\-]/g, "");
+                  setQualification(cleaned);
+                  if (qualificationError) setQualificationError("");
+                }}
+                onBlur={() => {
+                  if (qualification.trim()) {
+                    const res = validateQualification(qualification, doctor);
+                    if (!res.isValid) setQualificationError(res.message);
+                  }
+                }}
+              />
+            </View>
+            {!!qualificationError && (
+              <Text style={styles.errorText}>{qualificationError}</Text>
+            )}
 
-  onConfirm={() => {
-    if (
-      statusModal.type === "success"
-    ) {
-      navigation.goBack();
-    }
-  }}
-/>
+            {/* Specialization */}
+            <Text style={styles.label}>{doctor("specialization")} *</Text>
+            <View
+              style={[
+                styles.inputContainer,
+                specializationError ? styles.errorInput : null,
+              ]}
+            >
+              <Ionicons
+                name="medical-outline"
+                size={20}
+                color="#64748B"
+                style={styles.icon}
+              />
+              <TextInput
+                style={styles.input}
+                placeholder={doctor("specialization_placeholder")}
+                placeholderTextColor="#94A3B8"
+                value={specialization}
+                maxLength={150}
+                onChangeText={(text) => {
+                  const cleaned = text.replace(/[^a-zA-Z\s\.\,\/\-]/g, "");
+                  setSpecialization(cleaned);
+                  if (specializationError) setSpecializationError("");
+                }}
+                onBlur={() => {
+                  if (specialization.trim()) {
+                    const res = validateSpecialization(specialization, doctor);
+                    if (!res.isValid) setSpecializationError(res.message);
+                  }
+                }}
+              />
+            </View>
+            {!!specializationError && (
+              <Text style={styles.errorText}>{specializationError}</Text>
+            )}
+
+            {/* Experience */}
+            <Text style={styles.label}>{doctor("experience_years")} *</Text>
+            <View
+              style={[
+                styles.inputContainer,
+                experienceError ? styles.errorInput : null,
+              ]}
+            >
+              <Ionicons
+                name="time-outline"
+                size={20}
+                color="#64748B"
+                style={styles.icon}
+              />
+              <TextInput
+                style={styles.input}
+                placeholder={doctor("experience_placeholder")}
+                placeholderTextColor="#94A3B8"
+                keyboardType="numeric"
+                maxLength={2}
+                value={experience}
+                onChangeText={(text) => {
+                  const value = text.replace(/\D/g, "");
+                  setExperience(value);
+                  if (experienceError) setExperienceError("");
+                }}
+                onBlur={() => {
+                  if (experience.trim()) {
+                    const res = validateExperience(experience, doctor);
+                    if (!res.isValid) setExperienceError(res.message);
+                  }
+                }}
+              />
+              <Text style={styles.suffix}>{doctor("years")}</Text>
+            </View>
+            {!!experienceError && (
+              <Text style={styles.errorText}>{experienceError}</Text>
+            )}
+
+            {/* Registration Number */}
+            <Text style={styles.label}>{doctor("registration_no")}</Text>
+            <View
+              style={[
+                styles.inputContainer,
+                registrationNoError ? styles.errorInput : null,
+              ]}
+            >
+              <Ionicons
+                name="document-text-outline"
+                size={20}
+                color="#64748B"
+                style={styles.icon}
+              />
+              <TextInput
+                style={styles.input}
+                placeholder={doctor("registration_no_placeholder") || "e.g. WBMH1289"}
+                placeholderTextColor="#94A3B8"
+                autoCapitalize="characters"
+                maxLength={50}
+                value={registrationNo}
+                onChangeText={(text) => {
+                  const cleaned = text.replace(/[^a-zA-Z0-9\-\/]/g, "").toUpperCase();
+                  setRegistrationNo(cleaned);
+                  if (registrationNoError) setRegistrationNoError("");
+                }}
+                onBlur={() => {
+                  if (registrationNo.trim()) {
+                    const res = validateRegistrationNo(registrationNo, false, doctor);
+                    if (!res.isValid) setRegistrationNoError(res.message);
+                  }
+                }}
+              />
+            </View>
+            {!!registrationNoError && (
+              <Text style={styles.errorText}>{registrationNoError}</Text>
+            )}
+
+            {/* Consultation Fee */}
+            <Text style={styles.label}>{doctor("consultation_fee")} *</Text>
+            <View
+              style={[
+                styles.inputContainer,
+                consultationFeeError ? styles.errorInput : null,
+              ]}
+            >
+              <Text style={styles.currency}>₹</Text>
+              <TextInput
+                style={styles.input}
+                placeholder={doctor("consultation_fee_placeholder")}
+                placeholderTextColor="#94A3B8"
+                keyboardType="numeric"
+                maxLength={7}
+                value={consultationFee}
+                onChangeText={(text) => {
+                  const value = text.replace(/\D/g, "");
+                  setConsultationFee(value);
+                  if (consultationFeeError) setConsultationFeeError("");
+                }}
+                onBlur={() => {
+                  if (consultationFee.trim()) {
+                    const res = validateConsultationFee(consultationFee, doctor);
+                    if (!res.isValid) setConsultationFeeError(res.message);
+                  }
+                }}
+              />
+            </View>
+            {!!consultationFeeError && (
+              <Text style={styles.errorText}>{consultationFeeError}</Text>
+            )}
+
+            {/* About Doctor */}
+            <Text style={styles.label}>{doctor("about_doctor")}</Text>
+            <View
+              style={[
+                styles.textAreaContainer,
+                aboutDoctorError ? styles.errorInput : null,
+              ]}
+            >
+              <TextInput
+                style={styles.textArea}
+                placeholder={doctor("about_doctor_placeholder")}
+                placeholderTextColor="#94A3B8"
+                multiline
+                numberOfLines={4}
+                textAlignVertical="top"
+                value={aboutDoctor}
+                maxLength={2000}
+                onChangeText={(text) => {
+                  setAboutDoctor(text);
+                  if (aboutDoctorError) setAboutDoctorError("");
+                }}
+                onBlur={() => {
+                  if (aboutDoctor.trim()) {
+                    const res = validateAbout(aboutDoctor);
+                    if (!res.isValid) setAboutDoctorError(res.message);
+                  }
+                }}
+              />
+            </View>
+            {!!aboutDoctorError && (
+              <Text style={styles.errorText}>{aboutDoctorError}</Text>
+            )}
+
+            {/* Save Button */}
+            <TouchableOpacity
+              style={[styles.button, loading ? styles.disabledButton : null]}
+              onPress={handleSaveDoctor}
+              disabled={loading}
+              activeOpacity={0.8}
+            >
+              {loading ? (
+                <ActivityIndicator color="#FFFFFF" />
+              ) : (
+                <Text style={styles.buttonText}>{doctor("save_doctor")}</Text>
+              )}
+            </TouchableOpacity>
+          </View>
+        </ScrollView>
+      </KeyboardAvoidingView>
+
+      <StatusModal
+        visible={statusModal.visible}
+        type={statusModal.type}
+        title={statusModal.title}
+        message={statusModal.message}
+        buttonText={doctor("ok")}
+        onClose={() => {
+          const wasSuccess = statusModal.type === "success";
+          const confirmCallback = statusModal.onConfirm;
+          setStatusModal((prev) => ({
+            ...prev,
+            visible: false,
+          }));
+          if (wasSuccess) {
+            if (confirmCallback) {
+              confirmCallback();
+            } else {
+              handleNavBack();
+            }
+          }
+        }}
+        onConfirm={() => {
+          const wasSuccess = statusModal.type === "success";
+          const confirmCallback = statusModal.onConfirm;
+          setStatusModal((prev) => ({ ...prev, visible: false }));
+          if (wasSuccess) {
+            if (confirmCallback) {
+              confirmCallback();
+            } else {
+              handleNavBack();
+            }
+          }
+        }}
+      />
     </SafeAreaView>
   );
 }
@@ -848,7 +616,6 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#F8FAFC",
   },
-
   navHeader: {
     height: 56,
     flexDirection: "row",
@@ -859,7 +626,6 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: "#E2E8F0",
   },
-
   backBtn: {
     width: 40,
     height: 40,
@@ -867,42 +633,30 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
   },
-
   navTitle: {
     fontSize: 18,
     fontWeight: "700",
     color: "#0F172A",
   },
-
   content: {
     padding: 20,
-    paddingBottom: 40,
+    paddingBottom: 60,
   },
-
-  heading: {
-    fontSize: 28,
-    fontWeight: "700",
-    color: "#0F172A",
-  },
-
   subHeading: {
     color: "#64748B",
     marginTop: 5,
     marginBottom: 20,
     fontSize: 15,
   },
-
   card: {
     backgroundColor: "#FFFFFF",
     borderRadius: 18,
     padding: 20,
-
     shadowColor: "#000",
     shadowOpacity: 0.05,
     shadowRadius: 8,
     elevation: 3,
   },
-
   label: {
     marginTop: 16,
     marginBottom: 8,
@@ -910,63 +664,53 @@ const styles = StyleSheet.create({
     color: "#334155",
     fontSize: 15,
   },
-
   inputContainer: {
     height: 56,
     borderWidth: 1,
     borderColor: "#CBD5E1",
     borderRadius: 12,
     backgroundColor: "#FFFFFF",
-
     flexDirection: "row",
     alignItems: "center",
-
     paddingHorizontal: 15,
   },
-
   icon: {
     marginRight: 10,
   },
-
   input: {
     flex: 1,
     fontSize: 16,
     color: "#0F172A",
+    height: "100%",
   },
-
   suffix: {
     color: "#64748B",
     fontSize: 14,
     fontWeight: "600",
   },
-
   currency: {
     fontSize: 18,
     fontWeight: "700",
     color: "#64748B",
     marginRight: 10,
   },
-
   textAreaContainer: {
-    minHeight: 120,
+    minHeight: 110,
     borderWidth: 1,
     borderColor: "#CBD5E1",
     borderRadius: 12,
     backgroundColor: "#FFFFFF",
-    padding: 15,
+    padding: 12,
   },
-
   textArea: {
-    minHeight: 90,
+    minHeight: 80,
     fontSize: 16,
     color: "#0F172A",
     textAlignVertical: "top",
   },
-
   errorInput: {
     borderColor: "#EF4444",
   },
-
   errorText: {
     color: "#EF4444",
     fontSize: 13,
@@ -974,7 +718,6 @@ const styles = StyleSheet.create({
     marginLeft: 4,
     fontWeight: "500",
   },
-
   button: {
     backgroundColor: "#2563EB",
     marginTop: 30,
@@ -984,7 +727,9 @@ const styles = StyleSheet.create({
     alignItems: "center",
     elevation: 3,
   },
-
+  disabledButton: {
+    opacity: 0.7,
+  },
   buttonText: {
     color: "#FFFFFF",
     fontWeight: "700",

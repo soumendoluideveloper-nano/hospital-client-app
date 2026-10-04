@@ -9,13 +9,16 @@ import {
   TextInput,
   TouchableOpacity,
   View,
+  KeyboardAvoidingView,
+  Platform,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import {
-  launchCameraAsync,
-  launchImageLibraryAsync,
-  requestCameraPermissionsAsync,
-} from "expo-image-picker";
+  pickImageFromCamera,
+  pickImageFromGallery,
+  prepareMultipartImage,
+  ImageFilePayload,
+} from "../../../utils/imagePicker";
 import * as Location from "expo-location";
 import { Ionicons } from "@expo/vector-icons";
 
@@ -32,9 +35,17 @@ import StatusModal from "../../../components/ui/StatusModal";
 import MapLocationPicker, {
   SelectedLocationData,
 } from "../../../components/ui/MapLocationPicker";
+import {
+  validateClinicName,
+  validateOwnerName,
+  validateEmail,
+  validateAddress,
+  validateCity,
+  validatePincode,
+} from "../../../utils/validation";
 
 export default function EditProfileScreen() {
-  const navigation = useNavigation();
+  const navigation = useNavigation<any>();
   const { t } = useTranslation("common");
   const { user, updateUser } = useAuth();
 
@@ -169,6 +180,8 @@ export default function EditProfileScreen() {
     return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
   };
 
+  const [selectedImagePayload, setSelectedImagePayload] = useState<ImageFilePayload | null>(null);
+
   useEffect(() => {
     if (user?.logo) {
       const url = user.logo.startsWith("http")
@@ -181,17 +194,19 @@ export default function EditProfileScreen() {
 
   const handleChangePhoto = async () => {
     try {
-      const permission = await requestCameraPermissionsAsync();
-      const result = await launchImageLibraryAsync({
-        mediaTypes: ["images"],
-        allowsEditing: true,
-        aspect: [1, 1],
-        quality: 0.8,
-      });
+      const result = await pickImageFromGallery([1, 1], 0.7);
 
-      if (!result.canceled && result.assets && result.assets[0]?.uri) {
+      if (result.success && result.uri && result.filePayload) {
         setImageError(false);
-        setProfileImage(result.assets[0].uri);
+        setProfileImage(result.uri);
+        setSelectedImagePayload(result.filePayload);
+      } else if (result.permissionDenied) {
+        setStatusModal({
+          visible: true,
+          type: "warning",
+          title: t("common:error") || "Permission Required",
+          message: t("common:gallery_permission_req") || "Gallery access permission is required to select a photo.",
+        });
       }
     } catch (error: any) {
       console.log("Image picker error:", error);
@@ -206,27 +221,19 @@ export default function EditProfileScreen() {
 
   const handleOpenCamera = async () => {
     try {
-      const permission = await requestCameraPermissionsAsync();
-      if (!permission.granted) {
+      const result = await pickImageFromCamera([1, 1], 0.7);
+
+      if (result.success && result.uri && result.filePayload) {
+        setImageError(false);
+        setProfileImage(result.uri);
+        setSelectedImagePayload(result.filePayload);
+      } else if (result.permissionDenied) {
         setStatusModal({
           visible: true,
           type: "warning",
-          title: "Permission Required",
-          message: "Camera permission is required to take a profile photo.",
+          title: t("common:error") || "Permission Required",
+          message: t("common:camera_permission_req") || "Camera permission is required to take a profile photo.",
         });
-        return;
-      }
-
-      const result = await launchCameraAsync({
-        mediaTypes: ["images"],
-        allowsEditing: true,
-        aspect: [1, 1],
-        quality: 0.8,
-      });
-
-      if (!result.canceled && result.assets && result.assets[0]?.uri) {
-        setImageError(false);
-        setProfileImage(result.assets[0].uri);
       }
     } catch (error: any) {
       console.log("Camera error:", error);
@@ -366,41 +373,42 @@ export default function EditProfileScreen() {
     const cleanLongitude = String(longitude || "").trim();
 
     // Clinic Name Validation
-    if (!cleanClinicName) {
-      newErrors.clinicName = "Clinic name is required";
-    } else if (cleanClinicName.length < 2) {
-      newErrors.clinicName = "Clinic name must be at least 2 characters";
+    const clinicVal = validateClinicName(cleanClinicName, t);
+    if (!clinicVal.isValid) {
+      newErrors.clinicName = clinicVal.message;
     }
 
     // Owner Name Validation
-    if (!cleanOwnerName) {
-      newErrors.ownerName = "Owner / Admin name is required";
-    } else if (cleanOwnerName.length < 2) {
-      newErrors.ownerName = "Owner name must be at least 2 characters";
+    const ownerVal = validateOwnerName(cleanOwnerName, t);
+    if (!ownerVal.isValid) {
+      newErrors.ownerName = ownerVal.message;
     }
 
     // Email Validation (optional but if provided must be valid)
     if (cleanEmail) {
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      if (!emailRegex.test(cleanEmail)) {
-        newErrors.email = "Please enter a valid email address";
+      const emailVal = validateEmail(cleanEmail, false, t);
+      if (!emailVal.isValid) {
+        newErrors.email = emailVal.message;
       }
     }
 
     // Address Validation
-    if (!cleanAddress) {
-      newErrors.address = "Street / Clinic address is required";
+    const addrVal = validateAddress(cleanAddress, t);
+    if (!addrVal.isValid) {
+      newErrors.address = addrVal.message;
     }
 
     // City Validation
-    if (!cleanCity) {
-      newErrors.city = "City is required";
+    const cityVal = validateCity(cleanCity, t);
+    if (!cityVal.isValid) {
+      newErrors.city = cityVal.message;
     }
 
-    // Pincode Validation (if entered, 6 digits)
+    // Pincode Validation (if entered, exactly 6 digits)
     if (cleanPincode) {
-      if (!/^\d{6}$/.test(cleanPincode)) {
-        newErrors.pincode = "Please enter a valid 6-digit pincode";
+      const pinVal = validatePincode(cleanPincode, t);
+      if (!pinVal.isValid) {
+        newErrors.pincode = pinVal.message;
       }
     }
 
@@ -473,13 +481,7 @@ export default function EditProfileScreen() {
         longitude: cleanLongitude !== "" ? Number(cleanLongitude) : undefined,
         description: cleanDesc,
         has_lab: hasLab,
-        logo: isLocalImage
-          ? {
-            uri: profileImage,
-            name: "clinic-profile.jpg",
-            type: "image/jpeg",
-          }
-          : null,
+        logo: selectedImagePayload || (isLocalImage ? prepareMultipartImage(profileImage, "clinic_logo") : null),
       };
 
       console.log("Update profile payload:", payload);
@@ -521,7 +523,7 @@ export default function EditProfileScreen() {
         type: "success",
         title: t("success"),
         message: response?.message || t("profile_updated"),
-        onConfirm: () => navigation.goBack(),
+        onConfirm: handleNavBack,
       });
     } catch (error: any) {
       console.log("Update profile error:", error);
@@ -536,13 +538,21 @@ export default function EditProfileScreen() {
     }
   };
 
+  const handleNavBack = () => {
+    if (navigation.canGoBack()) {
+      navigation.goBack();
+    } else {
+      navigation.navigate("Dashboard");
+    }
+  };
+
   return (
     <SafeAreaView style={styles.container} edges={["top"]}>
       {/* Navigation Header */}
       <View style={styles.navHeader}>
         <TouchableOpacity
           style={styles.backBtn}
-          onPress={() => navigation.goBack()}
+          onPress={handleNavBack}
           activeOpacity={0.7}
         >
           <Ionicons name="arrow-back" size={24} color="#0F172A" />
@@ -551,11 +561,16 @@ export default function EditProfileScreen() {
         <View style={{ width: 40 }} />
       </View>
 
-      <ScrollView
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingBottom: 40 }}
-        keyboardShouldPersistTaps="handled"
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 20}
       >
+        <ScrollView
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={{ paddingBottom: 60 }}
+          keyboardShouldPersistTaps="handled"
+        >
         {/* =================================================
             Profile Header & Photo
         ================================================= */}
@@ -627,9 +642,19 @@ export default function EditProfileScreen() {
           <TextInput
             style={[styles.input, !!errors.clinicName && styles.errorInput]}
             value={clinicName}
+            maxLength={100}
             onChangeText={(text) => {
-              setClinicName(text);
+              const cleaned = text.replace(/[^a-zA-Z0-9\s&.\-',\(\)]/g, "");
+              setClinicName(cleaned);
               clearError("clinicName");
+            }}
+            onBlur={() => {
+              if (clinicName.trim()) {
+                const val = validateClinicName(clinicName, t);
+                if (!val.isValid) {
+                  setErrors((prev) => ({ ...prev, clinicName: val.message }));
+                }
+              }
             }}
             placeholder="e.g. Apollo Clinic"
             placeholderTextColor="#94A3B8"
@@ -645,9 +670,19 @@ export default function EditProfileScreen() {
           <TextInput
             style={[styles.input, !!errors.ownerName && styles.errorInput]}
             value={ownerName}
+            maxLength={100}
             onChangeText={(text) => {
-              setOwnerName(text);
+              const cleaned = text.replace(/[^a-zA-Z\s\.\'\-]/g, "");
+              setOwnerName(cleaned);
               clearError("ownerName");
+            }}
+            onBlur={() => {
+              if (ownerName.trim()) {
+                const val = validateOwnerName(ownerName, t);
+                if (!val.isValid) {
+                  setErrors((prev) => ({ ...prev, ownerName: val.message }));
+                }
+              }
             }}
             placeholder="e.g. Dr. John Doe"
             placeholderTextColor="#94A3B8"
@@ -672,8 +707,17 @@ export default function EditProfileScreen() {
             style={[styles.input, !!errors.email && styles.errorInput]}
             value={email}
             onChangeText={(text) => {
-              setEmail(text);
+              const cleaned = text.replace(/\s/g, "").toLowerCase();
+              setEmail(cleaned);
               clearError("email");
+            }}
+            onBlur={() => {
+              if (email.trim()) {
+                const val = validateEmail(email, false, t);
+                if (!val.isValid) {
+                  setErrors((prev) => ({ ...prev, email: val.message }));
+                }
+              }
             }}
             placeholder="clinic@example.com"
             placeholderTextColor="#94A3B8"
@@ -689,7 +733,12 @@ export default function EditProfileScreen() {
           <TextInput
             style={styles.input}
             value={registrationNo}
-            onChangeText={setRegistrationNo}
+            maxLength={50}
+            autoCapitalize="characters"
+            onChangeText={(text) => {
+              const cleaned = text.replace(/[^a-zA-Z0-9\-\/]/g, "").toUpperCase();
+              setRegistrationNo(cleaned);
+            }}
             placeholder="e.g. WB-MED-2024-001"
             placeholderTextColor="#94A3B8"
           />
@@ -836,9 +885,18 @@ export default function EditProfileScreen() {
             style={[styles.textArea, !!errors.address && styles.errorInput]}
             multiline
             value={address}
+            maxLength={250}
             onChangeText={(text) => {
               setAddress(text);
               clearError("address");
+            }}
+            onBlur={() => {
+              if (address.trim()) {
+                const val = validateAddress(address, t);
+                if (!val.isValid) {
+                  setErrors((prev) => ({ ...prev, address: val.message }));
+                }
+              }
             }}
             placeholder="Shop / Building No, Street Name, Area..."
             placeholderTextColor="#94A3B8"
@@ -855,9 +913,19 @@ export default function EditProfileScreen() {
           <TextInput
             style={[styles.input, !!errors.city && styles.errorInput]}
             value={city}
+            maxLength={100}
             onChangeText={(text) => {
-              setCity(text);
+              const cleaned = text.replace(/[^a-zA-Z\s\.\-]/g, "");
+              setCity(cleaned);
               clearError("city");
+            }}
+            onBlur={() => {
+              if (city.trim()) {
+                const val = validateCity(city, t);
+                if (!val.isValid) {
+                  setErrors((prev) => ({ ...prev, city: val.message }));
+                }
+              }
             }}
             placeholder="e.g. Kolkata"
             placeholderTextColor="#94A3B8"
@@ -871,7 +939,11 @@ export default function EditProfileScreen() {
           <TextInput
             style={styles.input}
             value={state}
-            onChangeText={setState}
+            maxLength={100}
+            onChangeText={(text) => {
+              const cleaned = text.replace(/[^a-zA-Z\s\.\-]/g, "");
+              setState(cleaned);
+            }}
             placeholder="e.g. West Bengal"
             placeholderTextColor="#94A3B8"
           />
@@ -882,8 +954,17 @@ export default function EditProfileScreen() {
             style={[styles.input, !!errors.pincode && styles.errorInput]}
             value={pincode}
             onChangeText={(text) => {
-              setPincode(text);
+              const cleaned = text.replace(/\D/g, "");
+              setPincode(cleaned);
               clearError("pincode");
+            }}
+            onBlur={() => {
+              if (pincode.trim()) {
+                const val = validatePincode(pincode, t);
+                if (!val.isValid) {
+                  setErrors((prev) => ({ ...prev, pincode: val.message }));
+                }
+              }
             }}
             placeholder="e.g. 700001"
             placeholderTextColor="#94A3B8"
@@ -899,7 +980,11 @@ export default function EditProfileScreen() {
           <TextInput
             style={styles.input}
             value={country}
-            onChangeText={setCountry}
+            maxLength={50}
+            onChangeText={(text) => {
+              const cleaned = text.replace(/[^a-zA-Z\s\.\-]/g, "");
+              setCountry(cleaned);
+            }}
             placeholder="Country"
             placeholderTextColor="#94A3B8"
           />
@@ -964,6 +1049,7 @@ export default function EditProfileScreen() {
           )}
         </TouchableOpacity>
       </ScrollView>
+      </KeyboardAvoidingView>
 
       {/* Interactive Leaflet Map Location Picker Modal */}
       <MapLocationPicker

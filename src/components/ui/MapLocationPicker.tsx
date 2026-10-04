@@ -8,11 +8,13 @@ import {
   TouchableOpacity,
   View,
   Dimensions,
+  Platform,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import MapView, { Marker, PROVIDER_DEFAULT, Region } from "react-native-maps";
+import { WebView } from "react-native-webview";
 import { Ionicons } from "@expo/vector-icons";
 import * as Location from "expo-location";
+import { useTranslation } from "react-i18next";
 
 export interface SelectedLocationData {
   latitude: number;
@@ -32,7 +34,7 @@ interface MapLocationPickerProps {
   onSelectLocation: (data: SelectedLocationData) => void;
 }
 
-const { width, height } = Dimensions.get("window");
+const { width } = Dimensions.get("window");
 
 // Default coordinates (Kolkata, WB, India)
 const DEFAULT_LAT = 22.572645;
@@ -45,13 +47,18 @@ export default function MapLocationPicker({
   onClose,
   onSelectLocation,
 }: MapLocationPickerProps) {
-  const mapRef = useRef<MapView>(null);
+  const { t: common } = useTranslation("common");
+  const webViewRef = useRef<WebView>(null);
 
   const [currentLat, setCurrentLat] = useState<number>(
-    initialLatitude && !isNaN(initialLatitude) ? Number(initialLatitude) : DEFAULT_LAT
+    initialLatitude && !isNaN(initialLatitude) && initialLatitude !== 0
+      ? Number(initialLatitude)
+      : DEFAULT_LAT
   );
   const [currentLng, setCurrentLng] = useState<number>(
-    initialLongitude && !isNaN(initialLongitude) ? Number(initialLongitude) : DEFAULT_LNG
+    initialLongitude && !isNaN(initialLongitude) && initialLongitude !== 0
+      ? Number(initialLongitude)
+      : DEFAULT_LNG
   );
 
   const [addressInfo, setAddressInfo] = useState<{
@@ -68,77 +75,132 @@ export default function MapLocationPicker({
   const [searching, setSearching] = useState(false);
   const [searchResults, setSearchResults] = useState<any[]>([]);
   const [isMapMoving, setIsMapMoving] = useState(false);
+  const [mapError, setMapError] = useState(false);
+  const [permissionError, setPermissionError] = useState("");
 
-  // Reverse Geocoding with debounce/safety
-  const reverseGeocodeCoordinates = useCallback(async (lat: number, lng: number) => {
-    try {
-      setLoadingAddress(true);
-      const results = await Location.reverseGeocodeAsync({
-        latitude: lat,
-        longitude: lng,
-      });
+  // Reverse Geocoding
+  const reverseGeocodeCoordinates = useCallback(
+    async (lat: number, lng: number) => {
+      try {
+        setLoadingAddress(true);
+        let resolved = false;
 
-      if (results && results.length > 0) {
-        const item = results[0];
-        const parts = [item.name, item.street, item.district, item.city]
-          .filter(Boolean)
-          .join(", ");
+        // 1. Try expo-location native reverse geocode
+        try {
+          const results = await Location.reverseGeocodeAsync({
+            latitude: lat,
+            longitude: lng,
+          });
 
-        setAddressInfo({
-          formattedAddress: parts || `${item.city || ""}, ${item.region || ""}`,
-          city: item.city || item.subregion || "",
-          state: item.region || "",
-          country: item.country || "India",
-          pincode: item.postalCode || "",
-        });
+          if (results && results.length > 0) {
+            const item = results[0];
+            const parts = [item.name, item.street, item.district, item.city]
+              .filter(Boolean)
+              .join(", ");
+
+            setAddressInfo({
+              formattedAddress:
+                parts || `${item.city || ""}, ${item.region || ""}`,
+              city: item.city || item.subregion || "",
+              state: item.region || "",
+              country: item.country || "India",
+              pincode: item.postalCode || "",
+            });
+            resolved = true;
+          }
+        } catch (e) {
+          // fallback to online OSM reverse geocode
+        }
+
+        // 2. Fallback to OpenStreetMap reverse geocode
+        if (!resolved) {
+          const res = await fetch(
+            `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`,
+            {
+              headers: { "User-Agent": "CareSpotClinicPartnerApp/1.0" },
+            }
+          );
+          const data = await res.json();
+          if (data && data.address) {
+            const addr = data.address;
+            const road = addr.road || addr.suburb || addr.neighbourhood || "";
+            const city = addr.city || addr.town || addr.village || addr.county || "";
+            const state = addr.state || "";
+            const pincode = addr.postcode || "";
+            const full = data.display_name || [road, city, state].filter(Boolean).join(", ");
+
+            setAddressInfo({
+              formattedAddress: full,
+              city,
+              state,
+              country: addr.country || "India",
+              pincode,
+            });
+            resolved = true;
+          }
+        }
+
+        if (!resolved) {
+          setAddressInfo((prev) => ({
+            ...prev,
+            formattedAddress: `Lat: ${lat.toFixed(5)}, Lng: ${lng.toFixed(5)}`,
+          }));
+        }
+      } catch (error) {
+        setAddressInfo((prev) => ({
+          ...prev,
+          formattedAddress: `Lat: ${lat.toFixed(5)}, Lng: ${lng.toFixed(5)}`,
+        }));
+      } finally {
+        setLoadingAddress(false);
       }
-    } catch (error) {
-      console.log("Reverse geocode error:", error);
-      setAddressInfo((prev) => ({
-        ...prev,
-        formattedAddress: `Lat: ${lat.toFixed(5)}, Lng: ${lng.toFixed(5)}`,
-      }));
-    } finally {
-      setLoadingAddress(false);
-    }
-  }, []);
+    },
+    []
+  );
 
   // Update initial coordinates when modal opens
   useEffect(() => {
     if (visible) {
-      const lat = initialLatitude && !isNaN(initialLatitude) ? Number(initialLatitude) : DEFAULT_LAT;
-      const lng = initialLongitude && !isNaN(initialLongitude) ? Number(initialLongitude) : DEFAULT_LNG;
+      setMapError(false);
+      setPermissionError("");
+      const lat =
+        initialLatitude && !isNaN(initialLatitude) && initialLatitude !== 0
+          ? Number(initialLatitude)
+          : DEFAULT_LAT;
+      const lng =
+        initialLongitude && !isNaN(initialLongitude) && initialLongitude !== 0
+          ? Number(initialLongitude)
+          : DEFAULT_LNG;
       setCurrentLat(lat);
       setCurrentLng(lng);
       reverseGeocodeCoordinates(lat, lng);
-
-      setTimeout(() => {
-        mapRef.current?.animateToRegion(
-          {
-            latitude: lat,
-            longitude: lng,
-            latitudeDelta: 0.008,
-            longitudeDelta: 0.008,
-          },
-          800
-        );
-      }, 300);
     }
   }, [visible, initialLatitude, initialLongitude, reverseGeocodeCoordinates]);
 
-  // Handle Region Change (Native Map pan/zoom)
-  const onRegionChangeComplete = (region: Region) => {
-    setIsMapMoving(false);
-    if (!isNaN(region.latitude) && !isNaN(region.longitude)) {
-      setCurrentLat(region.latitude);
-      setCurrentLng(region.longitude);
-      reverseGeocodeCoordinates(region.latitude, region.longitude);
-    }
+  // Send map center change to Leaflet WebView
+  const setWebMapLocation = (lat: number, lng: number) => {
+    const jsCode = `if (window.map) { window.map.setView([${lat}, ${lng}], 16); } true;`;
+    webViewRef.current?.injectJavaScript(jsCode);
   };
 
-  const onRegionChange = () => {
-    if (!isMapMoving) {
-      setIsMapMoving(true);
+  // Handle messages from Leaflet WebView
+  const handleWebViewMessage = (event: any) => {
+    try {
+      const data = JSON.parse(event.nativeEvent.data);
+      if (data.type === "locationChange") {
+        const lat = parseFloat(data.lat);
+        const lng = parseFloat(data.lng);
+        if (!isNaN(lat) && !isNaN(lng)) {
+          setCurrentLat(lat);
+          setCurrentLng(lng);
+          setIsMapMoving(false);
+          reverseGeocodeCoordinates(lat, lng);
+        }
+      } else if (data.type === "mapMoveStart") {
+        setIsMapMoving(true);
+      }
+    } catch (e) {
+      console.log("WebView message error:", e);
     }
   };
 
@@ -146,8 +208,10 @@ export default function MapLocationPicker({
   const handleLocateMe = async () => {
     try {
       setLocatingUser(true);
+      setPermissionError("");
       const { status } = await Location.requestForegroundPermissionsAsync();
       if (status !== "granted") {
+        setPermissionError("Location permission is required to detect your location.");
         return;
       }
 
@@ -159,25 +223,17 @@ export default function MapLocationPicker({
         const { latitude, longitude } = position.coords;
         setCurrentLat(latitude);
         setCurrentLng(longitude);
-        mapRef.current?.animateToRegion(
-          {
-            latitude,
-            longitude,
-            latitudeDelta: 0.006,
-            longitudeDelta: 0.006,
-          },
-          1000
-        );
+        setWebMapLocation(latitude, longitude);
         reverseGeocodeCoordinates(latitude, longitude);
       }
-    } catch (err) {
-      console.log("Error locating user:", err);
+    } catch (err: any) {
+      setPermissionError("Unable to retrieve GPS location. Please check device location settings.");
     } finally {
       setLocatingUser(false);
     }
   };
 
-  // Search Locality/Address using OpenStreetMap Nominatim
+  // Search using OpenStreetMap Nominatim
   const handleSearch = async () => {
     if (!searchQuery.trim()) return;
 
@@ -185,11 +241,11 @@ export default function MapLocationPicker({
       setSearching(true);
       const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(
         searchQuery.trim()
-      )}&limit=5`;
+      )}&countrycodes=in&limit=5`;
 
       const response = await fetch(url, {
         headers: {
-          "User-Agent": "ClinicPartnerApp/1.0",
+          "User-Agent": "CareSpotClinicPartner/1.0",
         },
       });
       const data = await response.json();
@@ -214,15 +270,7 @@ export default function MapLocationPicker({
       setSearchQuery("");
       setCurrentLat(lat);
       setCurrentLng(lng);
-      mapRef.current?.animateToRegion(
-        {
-          latitude: lat,
-          longitude: lng,
-          latitudeDelta: 0.008,
-          longitudeDelta: 0.008,
-        },
-        1000
-      );
+      setWebMapLocation(lat, lng);
       reverseGeocodeCoordinates(lat, lng);
     }
   };
@@ -241,6 +289,72 @@ export default function MapLocationPicker({
     onClose();
   };
 
+  // Leaflet HTML Content with ultra-fast CDN and embedded styling
+  const leafletHtml = `
+    <!DOCTYPE html>
+    <html>
+      <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css" />
+        <style>
+          * { margin: 0; padding: 0; box-sizing: border-box; }
+          html, body, #map {
+            width: 100%;
+            height: 100%;
+            background-color: #f1f5f9;
+          }
+          .leaflet-control-attribution {
+            display: none !important;
+          }
+        </style>
+      </head>
+      <body>
+        <div id="map"></div>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
+        <script>
+          try {
+            var map = L.map('map', {
+              center: [${currentLat}, ${currentLng}],
+              zoom: 16,
+              zoomControl: false
+            });
+
+            L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+              maxZoom: 19,
+              attribution: ''
+            }).addTo(map);
+
+            window.map = map;
+
+            map.on('movestart', function() {
+              if (window.ReactNativeWebView) {
+                window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'mapMoveStart' }));
+              }
+            });
+
+            map.on('moveend', function() {
+              var center = map.getCenter();
+              if (window.ReactNativeWebView) {
+                window.ReactNativeWebView.postMessage(JSON.stringify({
+                  type: 'locationChange',
+                  lat: center.lat,
+                  lng: center.lng
+                }));
+              }
+            });
+
+            map.on('click', function(e) {
+              map.panTo(e.latlng);
+            });
+          } catch (e) {
+            console.error('Leaflet initialization error:', e);
+          }
+        </script>
+      </body>
+    </html>
+  `;
+
   return (
     <Modal
       visible={visible}
@@ -249,9 +363,7 @@ export default function MapLocationPicker({
       presentationStyle="fullScreen"
     >
       <SafeAreaView style={styles.safeArea} edges={["top", "bottom"]}>
-        {/* =================================================
-            Top Bar with Search
-        ================================================= */}
+        {/* Top Bar with Search */}
         <View style={styles.topBar}>
           <TouchableOpacity
             style={styles.closeBtn}
@@ -262,10 +374,15 @@ export default function MapLocationPicker({
           </TouchableOpacity>
 
           <View style={styles.searchBarContainer}>
-            <Ionicons name="search" size={18} color="#64748B" style={{ marginRight: 6 }} />
+            <Ionicons
+              name="search"
+              size={18}
+              color="#64748B"
+              style={{ marginRight: 6 }}
+            />
             <TextInput
               style={styles.searchInput}
-              placeholder="Search area, street or city..."
+              placeholder={common("map_search_placeholder") || "Search area, street or landmark..."}
               placeholderTextColor="#94A3B8"
               value={searchQuery}
               onChangeText={setSearchQuery}
@@ -316,60 +433,95 @@ export default function MapLocationPicker({
           </View>
         )}
 
-        {/* =================================================
-            Native Map View
-        ================================================= */}
+        {/* Permission / Status Warning Banner */}
+        {!!permissionError && (
+          <View style={styles.warningBanner}>
+            <Ionicons name="warning-outline" size={16} color="#B45309" />
+            <Text style={styles.warningBannerText}>{permissionError}</Text>
+          </View>
+        )}
+
+        {/* Map View Area */}
         <View style={styles.mapContainer}>
-          <MapView
-            ref={mapRef}
-            provider={PROVIDER_DEFAULT}
-            style={styles.map}
-            initialRegion={{
-              latitude: currentLat,
-              longitude: currentLng,
-              latitudeDelta: 0.008,
-              longitudeDelta: 0.008,
-            }}
-            onRegionChange={onRegionChange}
-            onRegionChangeComplete={onRegionChangeComplete}
-            showsUserLocation={true}
-            showsMyLocationButton={false}
-            showsCompass={true}
-          />
-
-          {/* Floating Instruction Badge */}
-          <View style={styles.instructionBadge}>
-            <Text style={styles.instructionText}>
-              📍 Move map to place pin on your clinic shop
-            </Text>
-          </View>
-
-          {/* Fixed Center Pin with animated elevation */}
-          <View style={styles.centerPinWrapper} pointerEvents="none">
-            <View style={[styles.centerPinIcon, isMapMoving && styles.centerPinMoving]}>
-              <Ionicons name="location" size={36} color="#2563EB" />
+          {mapError ? (
+            <View style={styles.errorContainer}>
+              <Ionicons name="map-outline" size={48} color="#94A3B8" />
+              <Text style={styles.errorTitle}>
+                {common("map_error_title") || "Unable to load map"}
+              </Text>
+              <Text style={styles.errorSubtitle}>
+                {common("map_error_subtitle") || "Please check your internet connection and location permissions."}
+              </Text>
+              <TouchableOpacity
+                style={styles.retryBtn}
+                onPress={() => {
+                  setMapError(false);
+                  reverseGeocodeCoordinates(currentLat, currentLng);
+                }}
+              >
+                <Text style={styles.retryBtnText}>
+                  {common("map_retry_btn") || "Retry Map"}
+                </Text>
+              </TouchableOpacity>
             </View>
-            <View style={styles.centerPinDot} />
-          </View>
+          ) : (
+            <>
+              <WebView
+                ref={webViewRef}
+                originWhitelist={["*"]}
+                source={{ html: leafletHtml }}
+                style={styles.map}
+                onMessage={handleWebViewMessage}
+                onError={() => setMapError(true)}
+                javaScriptEnabled={true}
+                domStorageEnabled={true}
+                cacheEnabled={true}
+                startInLoadingState={true}
+                renderLoading={() => (
+                  <View style={styles.mapLoading}>
+                    <ActivityIndicator size="large" color="#2563EB" />
+                  </View>
+                )}
+              />
 
-          {/* Floating "Locate Me" GPS Button */}
-          <TouchableOpacity
-            style={styles.locateMeBtn}
-            onPress={handleLocateMe}
-            activeOpacity={0.8}
-            disabled={locatingUser}
-          >
-            {locatingUser ? (
-              <ActivityIndicator size="small" color="#2563EB" />
-            ) : (
-              <Ionicons name="locate" size={24} color="#2563EB" />
-            )}
-          </TouchableOpacity>
+              {/* Floating Instruction Badge */}
+              <View style={styles.instructionBadge}>
+                <Text style={styles.instructionText}>
+                  {common("map_drag_instruction") || "📍 Drag map to position pin on your clinic"}
+                </Text>
+              </View>
+
+              {/* Fixed Center Pin */}
+              <View style={styles.centerPinWrapper} pointerEvents="none">
+                <View
+                  style={[
+                    styles.centerPinIcon,
+                    isMapMoving && styles.centerPinMoving,
+                  ]}
+                >
+                  <Ionicons name="location" size={38} color="#2563EB" />
+                </View>
+                <View style={styles.centerPinDot} />
+              </View>
+
+              {/* Floating "Locate Me" GPS Button */}
+              <TouchableOpacity
+                style={styles.locateMeBtn}
+                onPress={handleLocateMe}
+                activeOpacity={0.8}
+                disabled={locatingUser}
+              >
+                {locatingUser ? (
+                  <ActivityIndicator size="small" color="#2563EB" />
+                ) : (
+                  <Ionicons name="locate" size={24} color="#2563EB" />
+                )}
+              </TouchableOpacity>
+            </>
+          )}
         </View>
 
-        {/* =================================================
-            Bottom Location Info & Confirmation Sheet
-        ================================================= */}
+        {/* Bottom Sheet */}
         <View style={styles.bottomSheet}>
           <View style={styles.sheetHandle} />
 
@@ -385,7 +537,9 @@ export default function MapLocationPicker({
             {loadingAddress && (
               <View style={styles.loadingAddressBadge}>
                 <ActivityIndicator size="small" color="#64748B" />
-                <Text style={styles.loadingAddressText}>Locating address...</Text>
+                <Text style={styles.loadingAddressText}>
+                  {common("map_loading_address") || "Fetching address details..."}
+                </Text>
               </View>
             )}
           </View>
@@ -399,7 +553,9 @@ export default function MapLocationPicker({
               style={{ marginTop: 2, marginRight: 10 }}
             />
             <View style={{ flex: 1 }}>
-              <Text style={styles.addressTitle}>Clinic Shop Location</Text>
+              <Text style={styles.addressTitle}>
+                {common("map_selected_location") || "Selected Clinic Location"}
+              </Text>
               <Text style={styles.addressText} numberOfLines={3}>
                 {addressInfo.formattedAddress ||
                   `Latitude: ${currentLat.toFixed(5)}, Longitude: ${currentLng.toFixed(5)}`}
@@ -421,7 +577,9 @@ export default function MapLocationPicker({
               onPress={onClose}
               activeOpacity={0.7}
             >
-              <Text style={styles.cancelBtnText}>Cancel</Text>
+              <Text style={styles.cancelBtnText}>
+                {common("cancel") || "Cancel"}
+              </Text>
             </TouchableOpacity>
 
             <TouchableOpacity
@@ -430,7 +588,9 @@ export default function MapLocationPicker({
               activeOpacity={0.8}
             >
               <Ionicons name="checkmark-circle" size={20} color="#FFFFFF" />
-              <Text style={styles.confirmBtnText}>Confirm Location</Text>
+              <Text style={styles.confirmBtnText}>
+                {common("map_confirm_btn") || "Confirm Location"}
+              </Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -517,12 +677,63 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: "#334155",
   },
+  warningBanner: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#FEF3C7",
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    gap: 8,
+  },
+  warningBannerText: {
+    fontSize: 12,
+    color: "#B45309",
+    flex: 1,
+  },
   mapContainer: {
     flex: 1,
     position: "relative",
   },
   map: {
     ...StyleSheet.absoluteFillObject,
+  },
+  mapLoading: {
+    ...StyleSheet.absoluteFillObject,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#F8FAFC",
+  },
+  errorContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    padding: 24,
+    backgroundColor: "#F8FAFC",
+  },
+  errorTitle: {
+    fontSize: 17,
+    fontWeight: "700",
+    color: "#0F172A",
+    marginTop: 12,
+  },
+  errorSubtitle: {
+    fontSize: 13,
+    color: "#64748B",
+    textAlign: "center",
+    marginTop: 6,
+    lineHeight: 18,
+  },
+  retryBtn: {
+    marginTop: 16,
+    backgroundColor: "#2563EB",
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderRadius: 10,
+  },
+  retryBtnText: {
+    color: "#FFFFFF",
+    fontSize: 14,
+    fontWeight: "600",
   },
   instructionBadge: {
     position: "absolute",
@@ -543,8 +754,8 @@ const styles = StyleSheet.create({
     position: "absolute",
     top: "50%",
     left: "50%",
-    marginTop: -36,
-    marginLeft: -18,
+    marginTop: -38,
+    marginLeft: -19,
     alignItems: "center",
     justifyContent: "center",
   },

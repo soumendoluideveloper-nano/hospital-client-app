@@ -18,6 +18,10 @@ import { useTranslation } from "react-i18next";
 
 import { LabTest, updateLabTestApi } from "../api/lab.api";
 import StatusModal from "../../../components/ui/StatusModal";
+import {
+  validateLabTestName,
+  validateLabTestPrice,
+} from "../../../utils/validation";
 
 export default function EditLabTestScreen() {
   const navigation = useNavigation<any>();
@@ -86,20 +90,27 @@ export default function EditLabTestScreen() {
     setTestNameError("");
     setPriceError("");
 
-    if (!testName.trim()) {
-      setTestNameError(t("validation_name_req"));
+    const nameVal = validateLabTestName(testName, t);
+    if (!nameVal.isValid) {
+      setTestNameError(nameVal.message);
       valid = false;
     }
 
-    if (!price.trim()) {
-      setPriceError(t("validation_price_req"));
-      valid = false;
-    } else if (isNaN(Number(price)) || Number(price) <= 0) {
-      setPriceError(t("validation_price_req"));
+    const priceVal = validateLabTestPrice(price, t);
+    if (!priceVal.isValid) {
+      setPriceError(priceVal.message);
       valid = false;
     }
 
     return valid;
+  };
+
+  const handleNavBack = () => {
+    if (navigation.canGoBack()) {
+      navigation.goBack();
+    } else {
+      navigation.navigate("Dashboard");
+    }
   };
 
   const handleUpdate = async () => {
@@ -124,7 +135,7 @@ export default function EditLabTestScreen() {
           type: "success",
           title: t("test_updated_success"),
           message: t("test_updated_success"),
-          onConfirm: () => navigation.goBack(),
+          onConfirm: handleNavBack,
         });
       } else {
         setStatusModal({
@@ -153,7 +164,7 @@ export default function EditLabTestScreen() {
       <View style={styles.header}>
         <TouchableOpacity
           style={styles.backBtn}
-          onPress={() => navigation.goBack()}
+          onPress={handleNavBack}
         >
           <Ionicons name="arrow-back" size={24} color="#0F172A" />
         </TouchableOpacity>
@@ -230,9 +241,17 @@ export default function EditLabTestScreen() {
                 placeholder={t("test_name_placeholder")}
                 placeholderTextColor="#94A3B8"
                 value={testName}
+                maxLength={150}
                 onChangeText={(val) => {
-                  setTestName(val);
+                  const cleaned = val.replace(/[^a-zA-Z0-9\s&.\-',\(\)\/]/g, "");
+                  setTestName(cleaned);
                   if (testNameError) setTestNameError("");
+                }}
+                onBlur={() => {
+                  if (testName.trim()) {
+                    const nameVal = validateLabTestName(testName, t);
+                    if (!nameVal.isValid) setTestNameError(nameVal.message);
+                  }
                 }}
               />
               {!!testNameError && (
@@ -250,10 +269,18 @@ export default function EditLabTestScreen() {
                 placeholder={t("price_placeholder")}
                 placeholderTextColor="#94A3B8"
                 keyboardType="numeric"
+                maxLength={7}
                 value={price}
                 onChangeText={(val) => {
-                  setPrice(val);
+                  const cleaned = val.replace(/\D/g, "");
+                  setPrice(cleaned);
                   if (priceError) setPriceError("");
+                }}
+                onBlur={() => {
+                  if (price.trim()) {
+                    const priceVal = validateLabTestPrice(price, t);
+                    if (!priceVal.isValid) setPriceError(priceVal.message);
+                  }
                 }}
               />
               {!!priceError && (

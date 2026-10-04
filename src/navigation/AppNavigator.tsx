@@ -155,14 +155,17 @@ export type RootStackParamList = {
 
   DoctorDetails: {
     doctorId: string;
+    doctor?: any;
   };
 
   EditDoctor: {
     doctorId: string;
+    doctor?: any;
   };
 
   DoctorSchedule: {
     doctorId: string;
+    doctor?: any;
   };
 
   TodaySchedule: undefined;

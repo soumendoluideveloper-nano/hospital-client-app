@@ -13,13 +13,17 @@ type StatusType =
   | "error"
   | "warning";
 
-interface StatusModalProps {
+export interface StatusModalProps {
   visible: boolean;
   type?: "success" | "error" | "warning";
   title: string;
   message: string;
   buttonText?: string;
+  showCancel?: boolean;
+  cancelText?: string;
+  confirmButtonColor?: string;
   onClose: () => void;
+  onCancel?: () => void;
   onConfirm?: () => void;
 }
 
@@ -29,7 +33,11 @@ export default function StatusModal({
   title,
   message,
   buttonText = "OK",
+  showCancel = false,
+  cancelText = "Cancel",
+  confirmButtonColor,
   onClose,
+  onCancel,
   onConfirm,
 }: StatusModalProps) {
   const config = {
@@ -51,11 +59,12 @@ export default function StatusModal({
       icon: "warning" as const,
       iconColor: "#D97706",
       iconBackground: "#FEF3C7",
-      buttonColor: "#D97706",
+      buttonColor: "#DC2626",
     },
   };
 
   const current = config[type];
+  const activeBtnColor = confirmButtonColor || current.buttonColor;
 
   return (
     <Modal
@@ -66,15 +75,12 @@ export default function StatusModal({
     >
       <View style={styles.overlay}>
         <View style={styles.modal}>
-
           {/* Icon */}
-
           <View
             style={[
               styles.iconContainer,
               {
-                backgroundColor:
-                  current.iconBackground,
+                backgroundColor: current.iconBackground,
               },
             ]}
           >
@@ -86,41 +92,57 @@ export default function StatusModal({
           </View>
 
           {/* Title */}
-
-          <Text style={styles.title}>
-            {title}
-          </Text>
+          <Text style={styles.title}>{title}</Text>
 
           {/* Message */}
+          <Text style={styles.message}>{message}</Text>
 
-          <Text style={styles.message}>
-            {message}
-          </Text>
+          {/* Buttons */}
+          {showCancel ? (
+            <View style={styles.buttonRow}>
+              <TouchableOpacity
+                style={[styles.button, styles.cancelBtn]}
+                onPress={() => {
+                  onClose();
+                  onCancel?.();
+                }}
+                activeOpacity={0.8}
+              >
+                <Text style={styles.cancelBtnText}>{cancelText}</Text>
+              </TouchableOpacity>
 
-          {/* Button */}
-
-         <TouchableOpacity
-  style={[
-    styles.button,
-    {
-      backgroundColor:
-        current.buttonColor,
-    },
-  ]}
-  onPress={() => {
-    onClose();
-
-    if (type === "success") {
-      onConfirm?.();
-    }
-  }}
-  activeOpacity={0.8}
->
-  <Text style={styles.buttonText}>
-    {buttonText}
-  </Text>
-</TouchableOpacity>
-
+              <TouchableOpacity
+                style={[
+                  styles.button,
+                  styles.confirmBtn,
+                  { backgroundColor: activeBtnColor },
+                ]}
+                onPress={() => {
+                  onClose();
+                  onConfirm?.();
+                }}
+                activeOpacity={0.8}
+              >
+                <Text style={styles.buttonText}>{buttonText}</Text>
+              </TouchableOpacity>
+            </View>
+          ) : (
+            <TouchableOpacity
+              style={[
+                styles.button,
+                {
+                  backgroundColor: activeBtnColor,
+                },
+              ]}
+              onPress={() => {
+                onClose();
+                onConfirm?.();
+              }}
+              activeOpacity={0.8}
+            >
+              <Text style={styles.buttonText}>{buttonText}</Text>
+            </TouchableOpacity>
+          )}
         </View>
       </View>
     </Modal>
@@ -186,6 +208,32 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     marginTop: 24,
+  },
+
+  buttonRow: {
+    flexDirection: "row",
+    gap: 12,
+    marginTop: 24,
+    width: "100%",
+  },
+
+  cancelBtn: {
+    flex: 1,
+    marginTop: 0,
+    backgroundColor: "#F1F5F9",
+    borderWidth: 1,
+    borderColor: "#E2E8F0",
+  },
+
+  confirmBtn: {
+    flex: 1,
+    marginTop: 0,
+  },
+
+  cancelBtnText: {
+    color: "#475569",
+    fontSize: 16,
+    fontWeight: "600",
   },
 
   buttonText: {

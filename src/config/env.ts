@@ -3,11 +3,13 @@ const ENV = {
   DEV: {
     API_BASE_URL: "http://192.168.0.103:8000/api",
     FILE_BASE_URL: "http://192.168.0.103:8000",
+    // API_BASE_URL: "https://api.demo.carespot.in/api",
+    // FILE_BASE_URL: "https://api.demo.carespot.in",
   },
 
   PROD: {
-    API_BASE_URL: "https://api.yourdomain.com/api",
-    FILE_BASE_URL: "https://api.yourdomain.com",
+    API_BASE_URL: "https://api.demo.carespot.in/api",
+    FILE_BASE_URL: "https://api.demo.carespot.in",
   },
 };
 

@@ -17,6 +17,10 @@ import { useTranslation } from "react-i18next";
 
 import { createLabTestApi } from "../api/lab.api";
 import StatusModal from "../../../components/ui/StatusModal";
+import {
+  validateLabTestName,
+  validateLabTestPrice,
+} from "../../../utils/validation";
 
 interface QuickSuggestion {
   name: string;
@@ -154,20 +158,27 @@ export default function AddLabTestScreen() {
     setTestNameError("");
     setPriceError("");
 
-    if (!testName.trim()) {
-      setTestNameError(t("validation_name_req"));
+    const nameVal = validateLabTestName(testName, t);
+    if (!nameVal.isValid) {
+      setTestNameError(nameVal.message);
       valid = false;
     }
 
-    if (!price.trim()) {
-      setPriceError(t("validation_price_req"));
-      valid = false;
-    } else if (isNaN(Number(price)) || Number(price) <= 0) {
-      setPriceError(t("validation_price_req"));
+    const priceVal = validateLabTestPrice(price, t);
+    if (!priceVal.isValid) {
+      setPriceError(priceVal.message);
       valid = false;
     }
 
     return valid;
+  };
+
+  const handleNavBack = () => {
+    if (navigation.canGoBack()) {
+      navigation.goBack();
+    } else {
+      navigation.navigate("Dashboard");
+    }
   };
 
   const handleSubmit = async () => {
@@ -191,7 +202,7 @@ export default function AddLabTestScreen() {
           type: "success",
           title: t("test_added_success"),
           message: t("test_added_success"),
-          onConfirm: () => navigation.goBack(),
+          onConfirm: handleNavBack,
         });
       } else {
         setStatusModal({
@@ -220,7 +231,7 @@ export default function AddLabTestScreen() {
       <View style={styles.header}>
         <TouchableOpacity
           style={styles.backBtn}
-          onPress={() => navigation.goBack()}
+          onPress={handleNavBack}
         >
           <Ionicons name="arrow-back" size={24} color="#0F172A" />
         </TouchableOpacity>
@@ -312,9 +323,17 @@ export default function AddLabTestScreen() {
                 placeholder={t("test_name_placeholder")}
                 placeholderTextColor="#94A3B8"
                 value={testName}
+                maxLength={150}
                 onChangeText={(val) => {
-                  setTestName(val);
+                  const cleaned = val.replace(/[^a-zA-Z0-9\s&.\-',\(\)\/]/g, "");
+                  setTestName(cleaned);
                   if (testNameError) setTestNameError("");
+                }}
+                onBlur={() => {
+                  if (testName.trim()) {
+                    const nameVal = validateLabTestName(testName, t);
+                    if (!nameVal.isValid) setTestNameError(nameVal.message);
+                  }
                 }}
               />
               {!!testNameError && (
@@ -332,10 +351,18 @@ export default function AddLabTestScreen() {
                 placeholder={t("price_placeholder")}
                 placeholderTextColor="#94A3B8"
                 keyboardType="numeric"
+                maxLength={7}
                 value={price}
                 onChangeText={(val) => {
-                  setPrice(val);
+                  const cleaned = val.replace(/\D/g, "");
+                  setPrice(cleaned);
                   if (priceError) setPriceError("");
+                }}
+                onBlur={() => {
+                  if (price.trim()) {
+                    const priceVal = validateLabTestPrice(price, t);
+                    if (!priceVal.isValid) setPriceError(priceVal.message);
+                  }
                 }}
               />
               {!!priceError && (

@@ -1,7 +1,9 @@
 import { API_BASE_URL } from "../config/env";
-import { getToken, logoutStorage } from "./authStorage";
+import { getToken, logoutStorage, emitUnauthorized } from "./authStorage";
 
-interface ApiOptions extends RequestInit {}
+interface ApiOptions extends RequestInit {
+  timeoutMs?: number;
+}
 
 export async function apiClient<T = any>(
   endpoint: string,
@@ -10,41 +12,50 @@ export async function apiClient<T = any>(
   const token = await getToken();
 
   const isFormData =
-    options.body instanceof FormData;
+    typeof FormData !== 'undefined' && options.body instanceof FormData;
 
-  console.log("API Request:", {
-    endpoint,
-    method: options.method || "GET",
-    isFormData,
-    token,
-  });
+  const controller = new AbortController();
+  const timeout = setTimeout(() => {
+    controller.abort();
+  }, options.timeoutMs || 20000);
 
-  const response = await fetch(
-    `${API_BASE_URL}${endpoint}`,
-    {
-      ...options,
+  let response: Response;
 
-      headers: {
-        ...(!isFormData && {
-          "Content-Type": "application/json",
-        }),
+  try {
+    response = await fetch(
+      `${API_BASE_URL}${endpoint}`,
+      {
+        ...options,
+        signal: options.signal || controller.signal,
+        headers: {
+          ...(!isFormData && {
+            "Content-Type": "application/json",
+          }),
 
-        ...(token
-          ? {
-              Authorization: `Bearer ${token}`,
-            }
-          : {}),
+          ...(token
+            ? {
+                Authorization: `Bearer ${token}`,
+              }
+            : {}),
 
-        ...(options.headers || {}),
-      },
+          ...(options.headers || {}),
+        },
+      }
+    );
+  } catch (err: any) {
+    clearTimeout(timeout);
+    if (err.name === 'AbortError') {
+      throw new Error("Request timed out. Please check your internet connection.");
     }
-  );
+    throw new Error("Unable to connect to server. Please check your internet connection.");
+  } finally {
+    clearTimeout(timeout);
+  }
 
   let data: any = null;
 
   try {
     data = await response.json();
-    console.log("API Response:", data);
   } catch {
     data = null;
   }
@@ -52,18 +63,27 @@ export async function apiClient<T = any>(
   // Token expired
   if (response.status === 401) {
     await logoutStorage();
-
-    throw new Error(
-      "Session expired. Please login again."
-    );
+    emitUnauthorized();
+    throw new Error("Session expired. Please login again.");
   }
 
   if (!response.ok) {
-    throw new Error(
-      data?.message ||
-        data?.error ||
-        "Something went wrong."
-    );
+    let errorMsg = data?.message || data?.error;
+    if (!errorMsg && Array.isArray(data?.errors) && data.errors.length > 0) {
+      errorMsg = data.errors[0]?.message || data.errors[0];
+    }
+    if (!errorMsg) {
+      if (response.status >= 500) {
+        errorMsg = "Server error. Please try again later.";
+      } else if (response.status === 404) {
+        errorMsg = "Requested resource not found.";
+      } else if (response.status === 403) {
+        errorMsg = "Access denied.";
+      } else {
+        errorMsg = "Something went wrong. Please try again.";
+      }
+    }
+    throw new Error(errorMsg);
   }
 
   return data as T;

@@ -162,12 +162,14 @@ export default function SignupScreen() {
 
       <KeyboardAvoidingView
         style={styles.wrapper}
-        behavior={Platform.OS === "ios" ? "padding" : undefined}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 20}
       >
         <ScrollView
           ref={scrollRef}
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
+          automaticallyAdjustKeyboardInsets={true}
           contentContainerStyle={styles.content}
         >
           <ProgressStepper step={step} />

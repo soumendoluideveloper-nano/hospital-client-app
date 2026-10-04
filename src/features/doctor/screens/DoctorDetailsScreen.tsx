@@ -20,6 +20,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 
 import {
+  useFocusEffect,
   useNavigation,
   useRoute,
 } from "@react-navigation/native";
@@ -34,7 +35,9 @@ import {
 
 import {
   getDoctorByIdApi,
+  deleteDoctorApi,
 } from "../api/doctor.api";
+import StatusModal from "../../../components/ui/StatusModal";
 
 import { useTranslation } from "react-i18next";
 
@@ -59,16 +62,38 @@ export default function DoctorDetailsScreen() {
     useTranslation("doctor");
 
   const doctorId =
-    route.params?.doctorId;
+    route.params?.doctorId || route.params?.id || route.params?.doctor?.id;
+
+  const initialDoctor = route.params?.doctor;
 
   const [doctorData, setDoctorData] =
-    useState<any>(null);
+    useState<any>(initialDoctor || null);
 
   const [loading, setLoading] =
-    useState(true);
+    useState(!initialDoctor);
 
   const [error, setError] =
     useState("");
+
+  const [deleting, setDeleting] =
+    useState(false);
+
+  const [statusModal, setStatusModal] = useState<{
+    visible: boolean;
+    type: "success" | "error" | "warning";
+    title: string;
+    message: string;
+    showCancel?: boolean;
+    buttonText?: string;
+    cancelText?: string;
+    confirmButtonColor?: string;
+    onConfirm?: () => void;
+  }>({
+    visible: false,
+    type: "success",
+    title: "",
+    message: "",
+  });
 
   // =====================================================
   // Load Doctor
@@ -77,7 +102,9 @@ export default function DoctorDetailsScreen() {
   const loadDoctor = useCallback(
     async () => {
       try {
-        setLoading(true);
+        if (!initialDoctor && !doctorData) {
+          setLoading(true);
+        }
         setError("");
 
         if (!doctorId) {
@@ -96,21 +123,47 @@ export default function DoctorDetailsScreen() {
           response
         );
 
-        setDoctorData(
-          response?.data || null
-        );
+        const data = (response as any)?.data?.doctor || response?.data || response;
+        if (data) {
+          setDoctorData((prev: any) => ({
+            ...(initialDoctor || {}),
+            ...(prev || {}),
+            ...data,
+            phone:
+              data.phone ||
+              data.mobile ||
+              data.contact_number ||
+              data.phone_number ||
+              prev?.phone ||
+              prev?.mobile ||
+              initialDoctor?.phone ||
+              initialDoctor?.mobile ||
+              data.clinic?.phone ||
+              "",
+            email:
+              data.email ||
+              data.email_id ||
+              data.mail ||
+              prev?.email ||
+              initialDoctor?.email ||
+              data.clinic?.email ||
+              "",
+          }));
+        }
       } catch (err: any) {
         console.log(
           "Doctor Details Error:",
           err
         );
 
-        setError(
-          err?.message ||
-            doctor(
-              "load_doctor_failed"
-            )
-        );
+        if (!doctorData && !initialDoctor) {
+          setError(
+            err?.message ||
+              doctor(
+                "load_doctor_failed"
+              )
+          );
+        }
       } finally {
         setLoading(false);
       }
@@ -118,12 +171,23 @@ export default function DoctorDetailsScreen() {
     [
       doctor,
       doctorId,
+      initialDoctor,
     ]
   );
 
-  useEffect(() => {
-    loadDoctor();
-  }, [loadDoctor]);
+  useFocusEffect(
+    useCallback(() => {
+      loadDoctor();
+    }, [loadDoctor])
+  );
+
+  const handleNavBack = () => {
+    if (navigation.canGoBack()) {
+      navigation.goBack();
+    } else {
+      navigation.navigate("Dashboard");
+    }
+  };
 
   // =====================================================
   // Loading
@@ -138,7 +202,7 @@ export default function DoctorDetailsScreen() {
         <View style={styles.navHeader}>
           <TouchableOpacity
             style={styles.backBtn}
-            onPress={() => navigation.goBack()}
+            onPress={handleNavBack}
             activeOpacity={0.7}
           >
             <Ionicons name="arrow-back" size={24} color="#0F172A" />
@@ -184,7 +248,7 @@ export default function DoctorDetailsScreen() {
         <View style={styles.navHeader}>
           <TouchableOpacity
             style={styles.backBtn}
-            onPress={() => navigation.goBack()}
+            onPress={handleNavBack}
             activeOpacity={0.7}
           >
             <Ionicons name="arrow-back" size={24} color="#0F172A" />
@@ -265,29 +329,48 @@ export default function DoctorDetailsScreen() {
   // =====================================================
 
   const handleDelete = () => {
-    Alert.alert(
-      doctor("delete_doctor"),
-      doctor(
-        "delete_doctor_confirmation"
-      ),
-      [
-        {
-          text: doctor("cancel"),
-          style: "cancel",
-        },
-        {
-          text: doctor("delete"),
-          style: "destructive",
-          onPress: async () => {
-            // Delete API
-            console.log(
-              "Delete doctor:",
-              doctorId
-            );
-          },
-        },
-      ]
-    );
+    if (deleting) return;
+    const docName = doctorData?.name ? `Dr. ${doctorData.name.replace(/^Dr\.\s*/i, "")}` : "this doctor";
+    setStatusModal({
+      visible: true,
+      type: "warning",
+      title: doctor("delete_doctor_title") || "Delete Doctor",
+      message: doctor("delete_doctor_confirmation") || `Are you sure you want to delete ${docName}? This will remove the doctor from your clinic.`,
+      showCancel: true,
+      buttonText: doctor("delete") || "Delete",
+      cancelText: doctor("cancel") || "Cancel",
+      confirmButtonColor: "#DC2626",
+      onConfirm: async () => {
+        try {
+          setDeleting(true);
+          const res = await deleteDoctorApi(doctorId);
+          if (res.status === 1 || res.status === 200 || (res as any).success) {
+            setStatusModal({
+              visible: true,
+              type: "success",
+              title: doctor("delete_success_title") || "Doctor Deleted",
+              message: doctor("delete_success_message") || "The doctor has been removed successfully from your clinic.",
+              showCancel: false,
+              buttonText: doctor("ok") || "OK",
+              onConfirm: handleNavBack,
+            });
+          } else {
+            throw new Error(res.message || doctor("delete_failed") || "Failed to delete doctor");
+          }
+        } catch (err: any) {
+          setStatusModal({
+            visible: true,
+            type: "error",
+            title: doctor("error") || "Error",
+            message: err?.message || doctor("delete_failed") || "Failed to delete doctor. Please try again.",
+            showCancel: false,
+            buttonText: doctor("ok") || "OK",
+          });
+        } finally {
+          setDeleting(false);
+        }
+      },
+    });
   };
 
   // =====================================================
@@ -302,7 +385,7 @@ export default function DoctorDetailsScreen() {
       <View style={styles.navHeader}>
         <TouchableOpacity
           style={styles.backBtn}
-          onPress={() => navigation.goBack()}
+          onPress={handleNavBack}
           activeOpacity={0.7}
         >
           <Ionicons name="arrow-back" size={24} color="#0F172A" />
@@ -310,7 +393,12 @@ export default function DoctorDetailsScreen() {
         <Text style={styles.navTitle}>{doctor("doctor_information")}</Text>
         <TouchableOpacity
           style={styles.backBtn}
-          onPress={() => navigation.navigate("EditDoctor", { doctorId })}
+          onPress={() =>
+            navigation.navigate("EditDoctor", {
+              doctorId: String(doctorId),
+              doctor: doctorData || initialDoctor,
+            })
+          }
           activeOpacity={0.7}
         >
           <Ionicons name="create-outline" size={22} color="#2563EB" />
@@ -449,6 +537,10 @@ export default function DoctorDetailsScreen() {
             )}
             value={
               doctorData.phone ||
+              doctorData.mobile ||
+              doctorData.contact_number ||
+              doctorData.phone_number ||
+              doctorData.clinic?.phone ||
               doctor("not_available")
             }
           />
@@ -460,6 +552,9 @@ export default function DoctorDetailsScreen() {
             )}
             value={
               doctorData.email ||
+              doctorData.email_id ||
+              doctorData.mail ||
+              doctorData.clinic?.email ||
               doctor("not_available")
             }
           />
@@ -573,6 +668,7 @@ export default function DoctorDetailsScreen() {
               {
                 doctorId:
                   doctorId.toString(),
+                doctor: doctorData || initialDoctor,
               }
             )
           }
@@ -643,6 +739,7 @@ export default function DoctorDetailsScreen() {
               {
                 doctorId:
                   doctorId.toString(),
+                doctor: doctorData || initialDoctor,
               }
             )
           }
@@ -679,6 +776,12 @@ export default function DoctorDetailsScreen() {
         <TouchableOpacity
           style={styles.actionCard}
           activeOpacity={0.85}
+          onPress={() => {
+            navigation.navigate("Dashboard", {
+              screen: "Enquiries",
+              params: { doctorId: doctorId, filter: "ALL" },
+            } as any);
+          }}
         >
           <View
             style={
@@ -743,6 +846,24 @@ export default function DoctorDetailsScreen() {
           </Text>
         </TouchableOpacity>
       </ScrollView>
+
+      <StatusModal
+        visible={statusModal.visible}
+        type={statusModal.type}
+        title={statusModal.title}
+        message={statusModal.message}
+        showCancel={statusModal.showCancel}
+        buttonText={statusModal.buttonText || doctor("ok")}
+        cancelText={statusModal.cancelText || doctor("cancel")}
+        confirmButtonColor={statusModal.confirmButtonColor}
+        onClose={() => setStatusModal((prev) => ({ ...prev, visible: false }))}
+        onCancel={() => setStatusModal((prev) => ({ ...prev, visible: false }))}
+        onConfirm={() => {
+          const cb = statusModal.onConfirm;
+          setStatusModal((prev) => ({ ...prev, visible: false }));
+          cb?.();
+        }}
+      />
     </SafeAreaView>
   );
 }

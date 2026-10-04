@@ -3,7 +3,6 @@ import React, {
   useEffect,
   useState,
 } from "react";
-
 import {
   ActivityIndicator,
   KeyboardAvoidingView,
@@ -15,37 +14,38 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-
 import { SafeAreaView } from "react-native-safe-area-context";
-
 import { Ionicons } from "@expo/vector-icons";
-
 import {
+  useFocusEffect,
   useNavigation,
   useRoute,
 } from "@react-navigation/native";
-
 import {
   NativeStackNavigationProp,
 } from "@react-navigation/native-stack";
-
 import { useTranslation } from "react-i18next";
-
 import {
   RootStackParamList,
 } from "../../../navigation/AppNavigator";
-
 import {
   getDoctorByIdApi,
   updateDoctorApi,
 } from "../api/doctor.api";
-
 import StatusModal from "../../../components/ui/StatusModal";
+import {
+  validateDoctorName,
+  validateMobile,
+  validateEmail,
+  validateQualification,
+  validateSpecialization,
+  validateExperience,
+  validateRegistrationNo,
+  validateConsultationFee,
+  validateAbout,
+} from "../../../utils/validation";
 
-type NavigationProp =
-  NativeStackNavigationProp<
-    RootStackParamList
-  >;
+type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
 interface DoctorForm {
   name: string;
@@ -60,283 +60,176 @@ interface DoctorForm {
 }
 
 export default function EditDoctorScreen() {
-  const navigation =
-    useNavigation<NavigationProp>();
-
-  const route =
-    useRoute<any>();
-
-  const { t: doctor } =
-    useTranslation("doctor");
+  const navigation = useNavigation<NavigationProp>();
+  const route = useRoute<any>();
+  const { t: doctor } = useTranslation("doctor");
 
   const doctorId =
-    route.params?.doctorId;
+    route.params?.doctorId || route.params?.id || route.params?.doctor?.id;
 
-  // =====================================================
-  // State
-  // =====================================================
+  const initialDoctor = route.params?.doctor;
 
-  const [form, setForm] =
-    useState<DoctorForm>({
-      name: "",
-      phone: "",
-      email: "",
-      qualification: "",
-      specialization: "",
-      experience: "",
-      registration_no: "",
-      consultation_fee: "",
-      about: "",
-    });
+  const [form, setForm] = useState<DoctorForm>({
+    name: initialDoctor?.name || "",
+    phone:
+      initialDoctor?.phone ||
+      initialDoctor?.mobile ||
+      initialDoctor?.contact_number ||
+      initialDoctor?.phone_number ||
+      initialDoctor?.clinic?.phone ||
+      "",
+    email:
+      initialDoctor?.email ||
+      initialDoctor?.email_id ||
+      initialDoctor?.mail ||
+      initialDoctor?.clinic?.email ||
+      "",
+    qualification: initialDoctor?.qualification || "",
+    specialization: initialDoctor?.specialization || "",
+    experience:
+      initialDoctor?.experience != null
+        ? String(initialDoctor.experience)
+        : "",
+    registration_no: initialDoctor?.registration_no || "",
+    consultation_fee:
+      initialDoctor?.consultation_fee != null
+        ? String(initialDoctor.consultation_fee)
+        : "",
+    about: initialDoctor?.about || "",
+  });
 
-  const [loading, setLoading] =
-    useState(true);
+  const [loading, setLoading] = useState(!initialDoctor);
+  const [saving, setSaving] = useState(false);
+  const [errors, setErrors] = useState<Partial<Record<keyof DoctorForm, string>>>({});
 
-  const [saving, setSaving] =
-    useState(false);
+  const [statusModal, setStatusModal] = useState({
+    visible: false,
+    type: "success" as "success" | "error",
+    title: "",
+    message: "",
+  });
 
-  const [errors, setErrors] =
-    useState<
-      Partial<
-        Record<keyof DoctorForm, string>
-      >
-    >({});
-
-  const [statusModal, setStatusModal] =
-    useState({
-      visible: false,
-      type: "success" as
-        | "success"
-        | "error",
-      title: "",
-      message: "",
-    });
-
-  // =====================================================
-  // Update Field
-  // =====================================================
-
-  const updateField = (
-    key: keyof DoctorForm,
-    value: string
-  ) => {
-    setForm((previous) => ({
-      ...previous,
+  const updateField = (key: keyof DoctorForm, value: string) => {
+    setForm((prev) => ({
+      ...prev,
       [key]: value,
     }));
 
     if (errors[key]) {
-      setErrors((previous) => ({
-        ...previous,
+      setErrors((prev) => ({
+        ...prev,
         [key]: "",
       }));
     }
   };
 
-  // =====================================================
-  // Load Doctor
-  // =====================================================
-
-  const loadDoctor = useCallback(
-    async () => {
-      try {
+  const loadDoctor = useCallback(async () => {
+    try {
+      if (!initialDoctor) {
         setLoading(true);
+      }
+      if (!doctorId) {
+        throw new Error(doctor("doctor_id_missing") || "Doctor ID missing");
+      }
 
-        if (!doctorId) {
-          throw new Error(
-            doctor("doctor_id_missing")
-          );
-        }
+      const response = await getDoctorByIdApi(doctorId);
+      const data = (response as any)?.data?.doctor || response?.data || response;
 
-        const response =
-          await getDoctorByIdApi(
-            doctorId
-          );
+      if (!data) {
+        throw new Error(doctor("doctor_not_found") || "Doctor not found");
+      }
 
-        console.log(
-          "Edit Doctor Response:",
-          response
-        );
-
-        const data =
-          response?.data;
-
-        if (!data) {
-          throw new Error(
-            doctor(
-              "doctor_not_found"
-            )
-          );
-        }
-
-        setForm({
-          name: data.name || "",
-          phone: data.phone || "",
-          email: data.email || "",
-          qualification:
-            data.qualification || "",
-          specialization:
-            data.specialization || "",
-          experience:
-            data.experience != null
-              ? String(
-                  data.experience
-                )
-              : "",
-          registration_no:
-            data.registration_no ||
-            "",
-          consultation_fee:
-            data.consultation_fee !=
-            null
-              ? String(
-                  data.consultation_fee
-                )
-              : "",
-          about: data.about || "",
-        });
-      } catch (error: any) {
-        console.log(
-          "Load Doctor Error:",
-          error
-        );
-
+      setForm((prev) => ({
+        name: data.name || prev.name || "",
+        phone:
+          data.phone ||
+          data.mobile ||
+          data.contact_number ||
+          data.phone_number ||
+          prev.phone ||
+          initialDoctor?.phone ||
+          initialDoctor?.mobile ||
+          data.clinic?.phone ||
+          "",
+        email:
+          data.email ||
+          data.email_id ||
+          data.mail ||
+          prev.email ||
+          initialDoctor?.email ||
+          data.clinic?.email ||
+          "",
+        qualification: data.qualification || prev.qualification || "",
+        specialization: data.specialization || prev.specialization || "",
+        experience:
+          data.experience != null
+            ? String(data.experience)
+            : (prev.experience || (initialDoctor?.experience != null ? String(initialDoctor.experience) : "")),
+        registration_no: data.registration_no || prev.registration_no || initialDoctor?.registration_no || "",
+        consultation_fee:
+          data.consultation_fee != null
+            ? String(data.consultation_fee)
+            : (prev.consultation_fee || (initialDoctor?.consultation_fee != null ? String(initialDoctor.consultation_fee) : "")),
+        about: data.about || prev.about || initialDoctor?.about || "",
+      }));
+    } catch (error: any) {
+      if (!initialDoctor) {
         setStatusModal({
           visible: true,
           type: "error",
-          title: doctor("error"),
-          message:
-            error?.message ||
-            doctor(
-              "load_doctor_failed"
-            ),
+          title: doctor("error") || "Error",
+          message: error?.message || doctor("load_doctor_failed") || "Failed to load doctor",
         });
-      } finally {
-        setLoading(false);
       }
-    },
-    [
-      doctor,
-      doctorId,
-    ]
+    } finally {
+      setLoading(false);
+    }
+  }, [doctor, doctorId, initialDoctor]);
+
+  useFocusEffect(
+    useCallback(() => {
+      loadDoctor();
+    }, [loadDoctor])
   );
 
-  useEffect(() => {
-    loadDoctor();
-  }, [loadDoctor]);
-
-  // =====================================================
-  // Validation
-  // =====================================================
-
   const validate = () => {
-    const newErrors: Partial<
-      Record<keyof DoctorForm, string>
-    > = {};
+    const newErrors: Partial<Record<keyof DoctorForm, string>> = {};
 
-    if (!form.name.trim()) {
-      newErrors.name =
-        doctor("name_required");
-    }
+    const nameVal = validateDoctorName(form.name, doctor);
+    if (!nameVal.isValid) newErrors.name = nameVal.message;
 
-    if (!form.phone.trim()) {
-      newErrors.phone =
-        doctor("mobile_required");
-    } else if (
-      form.phone.length !== 10
-    ) {
-      newErrors.phone =
-        doctor("invalid_mobile");
-    }
+    const phoneVal = validateMobile(form.phone, doctor);
+    if (!phoneVal.isValid) newErrors.phone = phoneVal.message;
 
-    if (!form.email.trim()) {
-      newErrors.email =
-        doctor("email_required");
-    } else if (
-      !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(
-        form.email
-      )
-    ) {
-      newErrors.email =
-        doctor("invalid_email");
-    }
+    const emailVal = validateEmail(form.email, true, doctor);
+    if (!emailVal.isValid) newErrors.email = emailVal.message;
 
-    if (!form.qualification.trim()) {
-      newErrors.qualification =
-        doctor(
-          "qualification_required"
-        );
-    }
+    const qualVal = validateQualification(form.qualification, doctor);
+    if (!qualVal.isValid) newErrors.qualification = qualVal.message;
 
-    if (!form.specialization.trim()) {
-      newErrors.specialization =
-        doctor(
-          "specialization_required"
-        );
-    }
+    const specVal = validateSpecialization(form.specialization, doctor);
+    if (!specVal.isValid) newErrors.specialization = specVal.message;
 
-    if (!form.experience.trim()) {
-      newErrors.experience =
-        doctor(
-          "experience_required"
-        );
-    } else if (
-      Number(form.experience) < 0
-    ) {
-      newErrors.experience =
-        doctor(
-          "invalid_experience"
-        );
-    }
+    const expVal = validateExperience(form.experience, doctor);
+    if (!expVal.isValid) newErrors.experience = expVal.message;
 
-    if (
-      !form.registration_no.trim()
-    ) {
-      newErrors.registration_no =
-        doctor(
-          "registration_required"
-        );
-    }
+    const regVal = validateRegistrationNo(form.registration_no, false, doctor);
+    if (!regVal.isValid) newErrors.registration_no = regVal.message;
 
-    if (
-      !form.consultation_fee.trim()
-    ) {
-      newErrors.consultation_fee =
-        doctor(
-          "consultation_fee_required"
-        );
-    } else if (
-      Number(
-        form.consultation_fee
-      ) < 0
-    ) {
-      newErrors.consultation_fee =
-        doctor(
-          "invalid_consultation_fee"
-        );
-    }
+    const feeVal = validateConsultationFee(form.consultation_fee, doctor);
+    if (!feeVal.isValid) newErrors.consultation_fee = feeVal.message;
 
-    if (!form.about.trim()) {
-      newErrors.about =
-        doctor("about_required");
-    }
+    const aboutVal = validateAbout(form.about);
+    if (!aboutVal.isValid) newErrors.about = aboutVal.message;
 
     setErrors(newErrors);
-
-    return (
-      Object.keys(newErrors)
-        .length === 0
-    );
+    return Object.keys(newErrors).length === 0;
   };
 
-  // =====================================================
-  // Update Doctor
-  // =====================================================
-
   const handleUpdate = async () => {
-    if (!validate()) {
-      return;
-    }
+    if (saving) return;
+
+    if (!validate()) return;
 
     try {
       setSaving(true);
@@ -345,82 +238,53 @@ export default function EditDoctorScreen() {
         name: form.name.trim(),
         phone: form.phone.trim(),
         email: form.email.trim(),
-        qualification:
-          form.qualification.trim(),
-        specialization:
-          form.specialization.trim(),
-        experience: Number(
-          form.experience
-        ),
-        registration_no:
-          form.registration_no.trim(),
-        consultation_fee: Number(
-          form.consultation_fee
-        ),
-        about: form.about.trim(),
+        qualification: form.qualification.trim(),
+        specialization: form.specialization.trim(),
+        experience: Number(form.experience),
+        registration_no: form.registration_no.trim() || undefined,
+        consultation_fee: Number(form.consultation_fee),
+        about: form.about.trim() || undefined,
       };
 
-      console.log(
-        "Update Doctor Payload:",
-        payload
-      );
+      const response = await updateDoctorApi(doctorId, payload as any);
 
-      const response =
-        await updateDoctorApi(
-          doctorId,
-          payload
-        );
-
-      console.log(
-        "Update Doctor Response:",
-        response
-      );
-
-      setStatusModal({
-        visible: true,
-        type: "success",
-        title: doctor(
-          "success"
-        ),
-        message: doctor(
-          "doctor_updated_successfully"
-        ),
-      });
+      if (response.status === 1 || response.status === 200 || (response as any).success) {
+        setStatusModal({
+          visible: true,
+          type: "success",
+          title: doctor("success") || "Success",
+          message: doctor("doctor_updated_successfully") || "Doctor updated successfully!",
+        });
+      } else {
+        throw new Error(response.message || "Update failed");
+      }
     } catch (error: any) {
-      console.log(
-        "Update Doctor Error:",
-        error
-      );
-
       setStatusModal({
         visible: true,
         type: "error",
-        title: doctor("error"),
-        message:
-          error?.message ||
-          doctor(
-            "doctor_update_failed"
-          ),
+        title: doctor("error") || "Error",
+        message: error?.message || doctor("doctor_update_failed") || "Failed to update doctor",
       });
     } finally {
       setSaving(false);
     }
   };
 
-  // =====================================================
-  // Loading
-  // =====================================================
+  const handleNavBack = () => {
+    if (navigation.canGoBack()) {
+      navigation.goBack();
+    } else {
+      navigation.navigate("Dashboard");
+    }
+  };
 
   if (loading) {
     return (
-      <SafeAreaView
-        style={styles.container}
-        edges={["top"]}
-      >
+      <SafeAreaView style={styles.container} edges={["top"]}>
         <View style={styles.navHeader}>
           <TouchableOpacity
             style={styles.backBtn}
-            onPress={() => navigation.goBack()}
+            onPress={handleNavBack}
             activeOpacity={0.7}
           >
             <Ionicons name="arrow-back" size={24} color="#0F172A" />
@@ -429,43 +293,20 @@ export default function EditDoctorScreen() {
           <View style={{ width: 40 }} />
         </View>
 
-        <View
-          style={
-            styles.loadingContainer
-          }
-        >
-          <ActivityIndicator
-            size="large"
-            color="#2563EB"
-          />
-
-          <Text
-            style={
-              styles.loadingText
-            }
-          >
-            {doctor(
-              "loading_doctor"
-            )}
-          </Text>
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#2563EB" />
+          <Text style={styles.loadingText}>{doctor("loading_doctor")}</Text>
         </View>
       </SafeAreaView>
     );
   }
 
-  // =====================================================
-  // UI
-  // =====================================================
-
   return (
-    <SafeAreaView
-      style={styles.container}
-      edges={["top"]}
-    >
+    <SafeAreaView style={styles.container} edges={["top"]}>
       <View style={styles.navHeader}>
         <TouchableOpacity
           style={styles.backBtn}
-          onPress={() => navigation.goBack()}
+          onPress={handleNavBack}
           activeOpacity={0.7}
         >
           <Ionicons name="arrow-back" size={24} color="#0F172A" />
@@ -476,294 +317,241 @@ export default function EditDoctorScreen() {
 
       <KeyboardAvoidingView
         style={{ flex: 1 }}
-        behavior={
-          Platform.OS === "ios"
-            ? "padding"
-            : undefined
-        }
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 20}
       >
         <ScrollView
-          contentContainerStyle={
-            styles.content
-          }
-          showsVerticalScrollIndicator={
-            false
-          }
+          contentContainerStyle={styles.content}
+          showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
         >
-          <Text
-            style={
-              styles.subHeading
-            }
-          >
-            {doctor(
-              "update_doctor_information"
-            )}
+          <Text style={styles.subHeading}>
+            {doctor("update_doctor_information")}
           </Text>
 
-          {/* Form */}
-
-          <View
-            style={styles.card}
-          >
+          <View style={styles.card}>
             {/* Name */}
-
             <Input
               icon="person-outline"
-              label={doctor(
-                "full_name"
-              )}
-              placeholder={doctor(
-                "enter_doctor_name"
-              )}
+              label={`${doctor("full_name")} *`}
+              placeholder={doctor("enter_doctor_name")}
               value={form.name}
               error={errors.name}
-              onChangeText={(text) =>
-                updateField(
-                  "name",
-                  text
-                )
-              }
+              maxLength={150}
+              onChangeText={(text) => {
+                const cleaned = text.replace(/[^a-zA-Z\s\.\'\,\-]/g, "");
+                updateField("name", cleaned);
+              }}
+              onBlur={() => {
+                if (form.name.trim()) {
+                  const val = validateDoctorName(form.name, doctor);
+                  if (!val.isValid) {
+                    setErrors((prev) => ({ ...prev, name: val.message }));
+                  }
+                }
+              }}
             />
 
             {/* Mobile */}
-
             <Input
               icon="call-outline"
-              label={doctor(
-                "mobile_number"
-              )}
-              placeholder={doctor(
-                "enter_mobile"
-              )}
+              label={`${doctor("mobile_number")} *`}
+              placeholder={doctor("enter_mobile")}
               value={form.phone}
               error={errors.phone}
               keyboardType="phone-pad"
               maxLength={10}
-              onChangeText={(text) =>
-                updateField(
-                  "phone",
-                  text
-                )
-              }
+              onChangeText={(text) => {
+                const cleaned = text.replace(/\D/g, "");
+                updateField("phone", cleaned);
+              }}
+              onBlur={() => {
+                if (form.phone.trim()) {
+                  const val = validateMobile(form.phone, doctor);
+                  if (!val.isValid) {
+                    setErrors((prev) => ({ ...prev, phone: val.message }));
+                  }
+                }
+              }}
             />
 
             {/* Email */}
-
             <Input
               icon="mail-outline"
-              label={doctor(
-                "email"
-              )}
-              placeholder={doctor(
-                "enter_email"
-              )}
+              label={`${doctor("email")} *`}
+              placeholder={doctor("enter_email")}
               value={form.email}
               error={errors.email}
               keyboardType="email-address"
               autoCapitalize="none"
-              onChangeText={(text) =>
-                updateField(
-                  "email",
-                  text
-                )
-              }
+              onChangeText={(text) => {
+                const cleaned = text.replace(/\s/g, "").toLowerCase();
+                updateField("email", cleaned);
+              }}
+              onBlur={() => {
+                if (form.email.trim()) {
+                  const val = validateEmail(form.email, true, doctor);
+                  if (!val.isValid) {
+                    setErrors((prev) => ({ ...prev, email: val.message }));
+                  }
+                }
+              }}
             />
 
             {/* Qualification */}
-
             <Input
               icon="school-outline"
-              label={doctor(
-                "qualification"
-              )}
-              placeholder={doctor(
-                "enter_qualification"
-              )}
-              value={
-                form.qualification
-              }
-              error={
-                errors.qualification
-              }
-              onChangeText={(text) =>
-                updateField(
-                  "qualification",
-                  text
-                )
-              }
+              label={`${doctor("qualification")} *`}
+              placeholder={doctor("enter_qualification")}
+              value={form.qualification}
+              error={errors.qualification}
+              maxLength={200}
+              onChangeText={(text) => {
+                const cleaned = text.replace(/[^a-zA-Z0-9\s\.\,\(\)\/\-]/g, "");
+                updateField("qualification", cleaned);
+              }}
+              onBlur={() => {
+                if (form.qualification.trim()) {
+                  const val = validateQualification(form.qualification, doctor);
+                  if (!val.isValid) {
+                    setErrors((prev) => ({ ...prev, qualification: val.message }));
+                  }
+                }
+              }}
             />
 
             {/* Specialization */}
-
             <Input
               icon="medical-outline"
-              label={doctor(
-                "specialization"
-              )}
-              placeholder={doctor(
-                "enter_specialization"
-              )}
-              value={
-                form.specialization
-              }
-              error={
-                errors.specialization
-              }
-              onChangeText={(text) =>
-                updateField(
-                  "specialization",
-                  text
-                )
-              }
+              label={`${doctor("specialization")} *`}
+              placeholder={doctor("enter_specialization")}
+              value={form.specialization}
+              error={errors.specialization}
+              maxLength={150}
+              onChangeText={(text) => {
+                const cleaned = text.replace(/[^a-zA-Z\s\.\,\/\-]/g, "");
+                updateField("specialization", cleaned);
+              }}
+              onBlur={() => {
+                if (form.specialization.trim()) {
+                  const val = validateSpecialization(form.specialization, doctor);
+                  if (!val.isValid) {
+                    setErrors((prev) => ({ ...prev, specialization: val.message }));
+                  }
+                }
+              }}
             />
 
             {/* Experience */}
-
             <Input
-              icon="briefcase-outline"
-              label={doctor(
-                "experience_years"
-              )}
-              placeholder={doctor(
-                "enter_experience"
-              )}
+              icon="time-outline"
+              label={`${doctor("experience_years")} *`}
+              placeholder={doctor("enter_experience")}
               value={form.experience}
-              error={
-                errors.experience
-              }
+              error={errors.experience}
               keyboardType="numeric"
-              onChangeText={(text) =>
-                updateField(
-                  "experience",
-                  text
-                )
-              }
+              maxLength={2}
+              onChangeText={(text) => {
+                const cleaned = text.replace(/\D/g, "");
+                updateField("experience", cleaned);
+              }}
+              onBlur={() => {
+                if (form.experience.trim()) {
+                  const val = validateExperience(form.experience, doctor);
+                  if (!val.isValid) {
+                    setErrors((prev) => ({ ...prev, experience: val.message }));
+                  }
+                }
+              }}
             />
 
             {/* Registration */}
-
             <Input
               icon="card-outline"
-              label={doctor(
-                "registration_no"
-              )}
-              placeholder={doctor(
-                "enter_registration"
-              )}
-              value={
-                form.registration_no
-              }
-              error={
-                errors.registration_no
-              }
-              onChangeText={(text) =>
-                updateField(
-                  "registration_no",
-                  text
-                )
-              }
+              label={doctor("registration_no")}
+              placeholder={doctor("enter_registration") || "e.g. WBMH1289"}
+              value={form.registration_no}
+              error={errors.registration_no}
+              autoCapitalize="characters"
+              maxLength={50}
+              onChangeText={(text) => {
+                const cleaned = text.replace(/[^a-zA-Z0-9\-\/]/g, "").toUpperCase();
+                updateField("registration_no", cleaned);
+              }}
+              onBlur={() => {
+                if (form.registration_no.trim()) {
+                  const val = validateRegistrationNo(form.registration_no, false, doctor);
+                  if (!val.isValid) {
+                    setErrors((prev) => ({ ...prev, registration_no: val.message }));
+                  }
+                }
+              }}
             />
 
             {/* Consultation Fee */}
-
             <Input
               icon="cash-outline"
-              label={doctor(
-                "consultation_fee"
-              )}
-              placeholder={doctor(
-                "enter_consultation_fee"
-              )}
-              value={
-                form.consultation_fee
-              }
-              error={
-                errors.consultation_fee
-              }
+              label={`${doctor("consultation_fee")} *`}
+              placeholder={doctor("enter_consultation_fee")}
+              value={form.consultation_fee}
+              error={errors.consultation_fee}
               keyboardType="numeric"
-              onChangeText={(text) =>
-                updateField(
-                  "consultation_fee",
-                  text
-                )
-              }
+              maxLength={7}
+              onChangeText={(text) => {
+                const cleaned = text.replace(/\D/g, "");
+                updateField("consultation_fee", cleaned);
+              }}
+              onBlur={() => {
+                if (form.consultation_fee.trim()) {
+                  const val = validateConsultationFee(form.consultation_fee, doctor);
+                  if (!val.isValid) {
+                    setErrors((prev) => ({ ...prev, consultation_fee: val.message }));
+                  }
+                }
+              }}
             />
 
             {/* About */}
-
-            <Text
-              style={styles.label}
-            >
-              {doctor("about_doctor")}
-            </Text>
-
+            <Text style={styles.label}>{doctor("about_doctor")}</Text>
             <View
               style={[
-                styles.inputContainer,
                 styles.textAreaContainer,
-                errors.about &&
-                  styles.errorInput,
+                errors.about ? styles.errorInput : null,
               ]}
             >
-              <Ionicons
-                name="document-text-outline"
-                size={20}
-                color="#64748B"
-                style={
-                  styles.textAreaIcon
-                }
-              />
-
               <TextInput
                 multiline
-                numberOfLines={5}
+                numberOfLines={4}
                 textAlignVertical="top"
                 value={form.about}
-                placeholder={doctor(
-                  "write_about_doctor"
-                )}
+                placeholder={doctor("write_about_doctor")}
                 placeholderTextColor="#94A3B8"
-                onChangeText={(text) =>
-                  updateField(
-                    "about",
-                    text
-                  )
-                }
-                style={
-                  styles.textArea
-                }
+                maxLength={2000}
+                onChangeText={(text) => updateField("about", text)}
+                onBlur={() => {
+                  if (form.about.trim()) {
+                    const val = validateAbout(form.about);
+                    if (!val.isValid) {
+                      setErrors((prev) => ({ ...prev, about: val.message }));
+                    }
+                  }
+                }}
+                style={styles.textArea}
               />
             </View>
-
             {!!errors.about && (
-              <Text
-                style={
-                  styles.errorText
-                }
-              >
-                {errors.about}
-              </Text>
+              <Text style={styles.errorText}>{errors.about}</Text>
             )}
 
             {/* Update Button */}
-
             <TouchableOpacity
-              style={[
-                styles.button,
-                saving &&
-                  styles.disabledButton,
-              ]}
-              onPress={
-                handleUpdate
-              }
+              style={[styles.button, saving ? styles.disabledButton : null]}
+              onPress={handleUpdate}
               disabled={saving}
               activeOpacity={0.8}
             >
               {saving ? (
-                <ActivityIndicator
-                  color="#FFFFFF"
-                />
+                <ActivityIndicator color="#FFFFFF" />
               ) : (
                 <>
                   <Ionicons
@@ -771,15 +559,8 @@ export default function EditDoctorScreen() {
                     size={21}
                     color="#FFFFFF"
                   />
-
-                  <Text
-                    style={
-                      styles.buttonText
-                    }
-                  >
-                    {doctor(
-                      "update_doctor"
-                    )}
+                  <Text style={styles.buttonText}>
+                    {doctor("update_doctor")}
                   </Text>
                 </>
               )}
@@ -788,41 +569,24 @@ export default function EditDoctorScreen() {
         </ScrollView>
       </KeyboardAvoidingView>
 
-      {/* Status Modal */}
-
       <StatusModal
-        visible={
-          statusModal.visible
-        }
-        type={
-          statusModal.type
-        }
-        title={
-          statusModal.title
-        }
-        message={
-          statusModal.message
-        }
+        visible={statusModal.visible}
+        type={statusModal.type}
+        title={statusModal.title}
+        message={statusModal.message}
         buttonText={doctor("ok")}
         onClose={() => {
-          setStatusModal(
-            (previous) => ({
-              ...previous,
-              visible: false,
-            })
-          );
-
-          if (
-            statusModal.type ===
-            "success"
-          ) {
-            navigation.navigate(
-              "DoctorDetails",
-              {
-                doctorId:
-                  doctorId.toString(),
-              }
-            );
+          const wasSuccess = statusModal.type === "success";
+          setStatusModal((prev) => ({ ...prev, visible: false }));
+          if (wasSuccess) {
+            handleNavBack();
+          }
+        }}
+        onConfirm={() => {
+          const wasSuccess = statusModal.type === "success";
+          setStatusModal((prev) => ({ ...prev, visible: false }));
+          if (wasSuccess) {
+            handleNavBack();
           }
         }}
       />
@@ -830,46 +594,38 @@ export default function EditDoctorScreen() {
   );
 }
 
-// =====================================================
-// Input Component
-// =====================================================
-
 function Input({
   icon,
   label,
   placeholder,
   value,
   error,
-  onChangeText,
-  keyboardType,
+  keyboardType = "default",
+  secureTextEntry = false,
+  autoCapitalize = "sentences",
   maxLength,
-  autoCapitalize,
+  onChangeText,
+  onBlur,
 }: {
   icon: keyof typeof Ionicons.glyphMap;
   label: string;
   placeholder: string;
   value: string;
   error?: string;
-  onChangeText: (
-    text: string
-  ) => void;
   keyboardType?: any;
+  secureTextEntry?: boolean;
+  autoCapitalize?: "none" | "sentences" | "words" | "characters";
   maxLength?: number;
-  autoCapitalize?: any;
+  onChangeText: (text: string) => void;
+  onBlur?: () => void;
 }) {
   return (
-    <View>
-      <Text
-        style={styles.label}
-      >
-        {label}
-      </Text>
-
+    <View style={styles.inputWrapper}>
+      <Text style={styles.label}>{label}</Text>
       <View
         style={[
           styles.inputContainer,
-          error &&
-            styles.errorInput,
+          error ? styles.errorInput : null,
         ]}
       >
         <Ionicons
@@ -878,48 +634,29 @@ function Input({
           color="#64748B"
           style={styles.icon}
         />
-
         <TextInput
-          style={styles.input}
           value={value}
           placeholder={placeholder}
           placeholderTextColor="#94A3B8"
-          onChangeText={
-            onChangeText
-          }
-          keyboardType={
-            keyboardType
-          }
+          style={styles.input}
+          keyboardType={keyboardType}
+          secureTextEntry={secureTextEntry}
+          autoCapitalize={autoCapitalize}
           maxLength={maxLength}
-          autoCapitalize={
-            autoCapitalize
-          }
+          onChangeText={onChangeText}
+          onBlur={onBlur}
         />
       </View>
-
-      {!!error && (
-        <Text
-          style={
-            styles.errorText
-          }
-        >
-          {error}
-        </Text>
-      )}
+      {!!error && <Text style={styles.errorText}>{error}</Text>}
     </View>
   );
 }
-
-// =====================================================
-// Styles
-// =====================================================
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#F8FAFC",
   },
-
   navHeader: {
     height: 56,
     flexDirection: "row",
@@ -930,7 +667,6 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: "#E2E8F0",
   },
-
   backBtn: {
     width: 40,
     height: 40,
@@ -938,199 +674,110 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
   },
-
   navTitle: {
     fontSize: 18,
     fontWeight: "700",
     color: "#0F172A",
   },
-
   content: {
     padding: 20,
-    paddingBottom: 50,
+    paddingBottom: 60,
   },
-
-  header: {
-    marginBottom: 5,
-  },
-
-  heading: {
-    fontSize: 28,
-    fontWeight: "800",
-    color: "#0F172A",
-  },
-
   subHeading: {
-    marginTop: 6,
     color: "#64748B",
-    fontSize: 14,
+    marginTop: 5,
+    marginBottom: 20,
+    fontSize: 15,
   },
-
   card: {
-    marginTop: 18,
-
     backgroundColor: "#FFFFFF",
-
-    borderRadius: 20,
-
-    padding: 18,
-
-    borderWidth: 1,
-    borderColor: "#E0EAFF",
-
-    shadowColor: "#2563EB",
-    shadowOpacity: 0.06,
-    shadowRadius: 12,
-
-    shadowOffset: {
-      width: 0,
-      height: 5,
-    },
-
+    borderRadius: 18,
+    padding: 20,
+    shadowColor: "#000",
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
     elevation: 3,
   },
-
+  inputWrapper: {
+    marginBottom: 12,
+  },
   label: {
-    marginTop: 16,
     marginBottom: 8,
-
-    fontWeight: "700",
-
+    fontWeight: "600",
     color: "#334155",
-
     fontSize: 14,
   },
-
   inputContainer: {
-    height: 52,
-
+    height: 56,
     borderWidth: 1,
     borderColor: "#CBD5E1",
-
     borderRadius: 12,
-
     backgroundColor: "#FFFFFF",
-
     flexDirection: "row",
-
     alignItems: "center",
-
-    paddingHorizontal: 14,
+    paddingHorizontal: 15,
   },
-
-  errorInput: {
-    borderColor: "#EF4444",
-    backgroundColor: "#FFF7F7",
-  },
-
   icon: {
     marginRight: 10,
   },
-
   input: {
     flex: 1,
-
+    fontSize: 16,
+    color: "#0F172A",
     height: "100%",
-
-    fontSize: 15,
-
-    color: "#0F172A",
   },
-
   textAreaContainer: {
-    height: 120,
-
-    alignItems: "flex-start",
-
-    paddingTop: 14,
+    minHeight: 110,
+    borderWidth: 1,
+    borderColor: "#CBD5E1",
+    borderRadius: 12,
+    backgroundColor: "#FFFFFF",
+    padding: 12,
   },
-
-  textAreaIcon: {
-    marginRight: 10,
-  },
-
   textArea: {
-    flex: 1,
-
-    width: "100%",
-
-    minHeight: 90,
-
-    fontSize: 15,
-
+    minHeight: 80,
+    fontSize: 16,
     color: "#0F172A",
-
-    paddingTop: 0,
+    textAlignVertical: "top",
   },
-
+  errorInput: {
+    borderColor: "#EF4444",
+  },
   errorText: {
-    marginTop: 5,
-
-    marginLeft: 3,
-
     color: "#EF4444",
-
     fontSize: 13,
-
+    marginTop: 4,
+    marginLeft: 3,
     fontWeight: "500",
   },
-
   button: {
-    marginTop: 28,
-
-    height: 55,
-
-    borderRadius: 14,
-
     backgroundColor: "#2563EB",
-
-    flexDirection: "row",
-
+    marginTop: 24,
+    height: 55,
+    borderRadius: 12,
     justifyContent: "center",
-
     alignItems: "center",
-
-    shadowColor: "#2563EB",
-
-    shadowOpacity: 0.2,
-
-    shadowRadius: 8,
-
-    shadowOffset: {
-      width: 0,
-      height: 4,
-    },
-
+    flexDirection: "row",
+    gap: 8,
     elevation: 3,
   },
-
   disabledButton: {
     opacity: 0.7,
   },
-
   buttonText: {
-    marginLeft: 8,
-
     color: "#FFFFFF",
-
+    fontWeight: "700",
     fontSize: 16,
-
-    fontWeight: "800",
   },
-
   loadingContainer: {
     flex: 1,
-
     justifyContent: "center",
-
     alignItems: "center",
   },
-
   loadingText: {
     marginTop: 12,
-
     color: "#64748B",
-
-    fontSize: 14,
+    fontSize: 15,
+    fontWeight: "500",
   },
 });

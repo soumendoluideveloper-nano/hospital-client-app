@@ -73,6 +73,12 @@
   "try_another_keyword": "অন্য কোনো শব্দ দিয়ে চেষ্টা করুন",
   "add_first_doctor": "শুরু করতে আপনার প্রথম ডাক্তার যোগ করুন।",
 
+  "doctors_list_title": "ডাক্তারবৃন্দ",
+  "manage_doctors_subtitle": "ডাক্তারদের তথ্য ও সময়সূচি পরিচালনা করুন",
+  "total_doctors": "মোট ডাক্তার",
+  "edit_short": "সম্পাদনা",
+  "schedule_short": "সময়সূচি",
+  "details_short": "বিস্তারিত",
   "doctor_information": "ডাক্তারের তথ্য",
   "mobile": "মোবাইল",
   "not_available": "উপলব্ধ নয়",
@@ -95,7 +101,11 @@
 
   "delete": "মুছে দিন",
   "cancel": "বাতিল",
-  "delete_doctor_confirmation": "আপনি কি নিশ্চিত যে এই ডাক্তারকে মুছে দিতে চান?",
+  "delete_doctor_title": "ডাক্তার মুছে দিন",
+  "delete_doctor_confirmation": "আপনি কি নিশ্চিত যে এই ডাক্তারকে মুছে দিতে চান? এটি আপনার ক্লিনিকের তালিকা থেকে ডাক্তারকে মুছে ফেলবে।",
+  "delete_success_title": "ডাক্তার মুছে ফেলা হয়েছে",
+  "delete_success_message": "ডাক্তার সফলভাবে ক্লিনিক তালিকা থেকে মুছে ফেলা হয়েছে।",
+  "delete_failed": "ডাক্তার মুছতে ব্যর্থ হয়েছে। অনুগ্রহ করে আবার চেষ্টা করুন।",
 
   "update_doctor_information": "ডাক্তারের তথ্য আপডেট করুন",
 

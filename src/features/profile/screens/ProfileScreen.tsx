@@ -114,79 +114,34 @@ export default function ProfileScreen() {
   const [imageError, setImageError] =
     useState(false);
 
-  /*
-   * Load profile image
-   *
-   * Priority:
-   *
-   * 1. Local image
-   * 2. Backend image -> download once
-   * 3. Initials
-   */
+  // Load profile image
+  const remoteLogoUrl = user?.logo
+    ? user.logo.startsWith("http")
+      ? user.logo
+      : `${FILE_BASE_URL}/${user.logo.replace(/^public\//, "").replace(/^\//, "")}`
+    : null;
+
+  const profileImageUrl = remoteLogoUrl || localProfileImage;
+
   useEffect(() => {
     const loadProfileImage = async () => {
       try {
         setImageLoading(true);
         setImageError(false);
 
-        /*
-         * First check local storage
-         */
-        const localImage =
-          await getLocalProfileImage();
-
-        if (localImage) {
-          console.log(
-            "Using local profile image:",
-            localImage
-          );
-
-          setLocalProfileImage(
-            localImage
-          );
-
-          return;
-        }
-
-        /*
-         * No local image.
-         *
-         * If backend has image,
-         * download it once.
-         */
-        if (user?.logo) {
-          const imageUrl =
-            `${FILE_BASE_URL}/${user.logo.replace(
-              /^public\//,
-              ""
-            )}`;
-
-          console.log(
-            "Downloading profile image:",
-            imageUrl
-          );
-
-          const downloadedImage =
-            await saveProfileImage(
-              imageUrl
-            );
-
+        if (remoteLogoUrl) {
+          const downloadedImage = await saveProfileImage(remoteLogoUrl);
           if (downloadedImage) {
-            console.log(
-              "Profile image saved locally:",
-              downloadedImage
-            );
-
-            setLocalProfileImage(
-              downloadedImage
-            );
+            setLocalProfileImage(downloadedImage);
+          }
+        } else {
+          const localImage = await getLocalProfileImage();
+          if (localImage) {
+            setLocalProfileImage(localImage);
           }
         }
       } catch (error) {
-        console.log(
-          "Profile image load error:",
-          error
-        );
+        console.log("Profile image load error:", error);
       } finally {
         setImageLoading(false);
       }
@@ -250,24 +205,18 @@ export default function ProfileScreen() {
                 color="#2563EB"
               />
             </View>
-          ) : localProfileImage &&
+          ) : profileImageUrl &&
             !imageError ? (
             <Image
               source={{
-                uri: localProfileImage,
+                uri: profileImageUrl,
               }}
               style={styles.avatar}
-              onLoad={() => {
-                console.log(
-                  "Local profile image loaded"
-                );
-              }}
               onError={(error) => {
                 console.log(
-                  "Local profile image error:",
+                  "Profile image error:",
                   error.nativeEvent
                 );
-
                 setImageError(true);
               }}
             />

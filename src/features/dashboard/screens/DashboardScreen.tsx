@@ -206,12 +206,12 @@ export default function DashboardScreen() {
       color: "#8B5CF6",
       onPress: () => navigation.navigate("LabBookingList"),
     },
-    {
-      title: t("upload_report"),
-      icon: "cloud-upload-outline",
-      color: "#F59E0B",
-      onPress: () => navigation.navigate("LabBookingList"),
-    },
+    // {
+    //   title: t("upload_report"),
+    //   icon: "cloud-upload-outline",
+    //   color: "#F59E0B",
+    //   onPress: () => navigation.navigate("LabBookingList"),
+    // },
   ];
 
   return (
